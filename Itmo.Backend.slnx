@@ -1,5 +1,22 @@
 ﻿<Solution>
-  <Folder Name="/common/" />
+  <Folder Name="/common/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
   <Folder Name="/src/" />
+  <Folder Name="/src/console-client/" />
+  <Folder Name="/src/service/" />
+  <Folder Name="/src/service/Application/">
+    <Project Path="src\service\Application\Lab1.Application.Abstractions\Lab1.Application.Abstractions.csproj" Type="Classic C#" />
+    <Project Path="src\service\Application\Lab1.Application\Lab1.Application.csproj" Type="Classic C#" />
+    <Project Path="src\service\Application\Lab1.Contracts\Lab1.Contracts.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/src/service/Domain/">
+    <Project Path="src\service\Domain\Lab1.Domain\Lab1.Domain.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/src/service/Infrastructure/">
+    <Project Path="src\service\Infrastructure\Lab1.Infrastructure.Persistence\Lab1.Infrastructure.Persistence.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/src/service/Presentation/" />
   <Folder Name="/tests/" />
 </Solution>
