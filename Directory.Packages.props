@@ -8,7 +8,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageVersion>
+    <PackageVersion Include="FluentMigrator" Version="8.0.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="Npgsql" Version="10.0.1" />
     <PackageVersion Include="SourceKit" Version="1.1.54" />
     <PackageVersion Include="SourceKit.Analyzers.Collections" Version="1.0.52" />
     <PackageVersion Include="SourceKit.Analyzers.Enumerable" Version="1.0.52" />

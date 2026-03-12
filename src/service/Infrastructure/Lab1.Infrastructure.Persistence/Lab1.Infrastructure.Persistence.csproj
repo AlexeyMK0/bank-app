@@ -10,4 +10,9 @@
       <ProjectReference Include="..\..\Application\Lab1.Application.Abstractions\Lab1.Application.Abstractions.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="FluentMigrator" />
+      <PackageReference Include="Npgsql" />
+    </ItemGroup>
+
 </Project>

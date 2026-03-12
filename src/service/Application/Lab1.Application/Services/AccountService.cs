@@ -8,19 +8,23 @@ using Lab1.Application.Mappers;
 using Lab1.Domain.Accounts;
 using Lab1.Domain.Sessions;
 using Lab1.Domain.ValueObjects;
+using System.Data;
 using System.Diagnostics;
 
 namespace Lab1.Application.Services;
 
-public sealed class AccountSerivce : IAccountService
+public sealed class AccountService : IAccountService
 {
+    // TODO: Add optional for it
+    private const IsolationLevel TransactionIsolationLevel = IsolationLevel.ReadCommitted;
+
     private readonly IAccountRepository _accountRepository;
     private readonly IAdminSessionRepository _adminSessionRepository;
     private readonly IUserSessionRepository _userSessionRepository;
     private readonly IOperationRepository _operationRepository;
     private readonly ITransactionProvider _transactionProvider;
 
-    public AccountSerivce(
+    public AccountService(
         IAccountRepository accountRepository,
         IAdminSessionRepository adminSessionRepository,
         IUserSessionRepository userSessionRepository,
@@ -41,7 +45,7 @@ public sealed class AccountSerivce : IAccountService
         var requestSession = new SessionId(request.SessionId);
         var pinCode = new PinCode(request.PinCode);
 
-        await using ITransaction transaction = await _transactionProvider.BeginTransactionAsync(cancellationToken);
+        await using ITransaction transaction = await _transactionProvider.BeginTransactionAsync(cancellationToken, TransactionIsolationLevel);
 
         if (await _adminSessionRepository.FindBySessionAsync(requestSession, cancellationToken) is null)
         {
@@ -49,10 +53,9 @@ public sealed class AccountSerivce : IAccountService
         }
 
         Account account = await _accountRepository.AddAsync(
-            new Account(AccountId.Default, new PinCode(request.PinCode), Money.Zero),
+            new Account(AccountId.Default, pinCode, Money.Zero),
             cancellationToken);
 
-        await _transactionProvider.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
         return new CreateAccount.Response.Success(account.MapToDto());
@@ -75,7 +78,7 @@ public sealed class AccountSerivce : IAccountService
             return new CheckBalance.Response.Failure("Session not found");
         }
 
-        Account? account = await _accountRepository
+        Account account = await _accountRepository
            .QueryAsync(
                AccountQuery.Build(builder =>
                    builder.WithPageSize(1).WithAccountId(foundSession.AccountId)),
@@ -93,7 +96,7 @@ public sealed class AccountSerivce : IAccountService
         var requestSession = new SessionId(request.SessionId);
         var requestMoney = new Money(request.Amount);
 
-        await using ITransaction transaction = await _transactionProvider.BeginTransactionAsync(cancellationToken);
+        await using ITransaction transaction = await _transactionProvider.BeginTransactionAsync(cancellationToken, TransactionIsolationLevel);
 
         UserSession? foundSession = await FindUserSessionById(requestSession, cancellationToken);
         if (foundSession is null)
@@ -106,7 +109,6 @@ public sealed class AccountSerivce : IAccountService
         var newAccount = new Account(account.Id, account.PinCode, account.Balance.DecreaseBy(requestMoney));
         newAccount = await _accountRepository.UpdateAsync(newAccount, cancellationToken);
 
-        await _transactionProvider.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
         return new WithdrawMoney.Response.Success(newAccount.MapToDto());
@@ -119,7 +121,7 @@ public sealed class AccountSerivce : IAccountService
         var requestSession = new SessionId(request.SessionId);
         var requestMoney = new Money(request.Amount);
 
-        await using ITransaction transaction = await _transactionProvider.BeginTransactionAsync(cancellationToken);
+        await using ITransaction transaction = await _transactionProvider.BeginTransactionAsync(cancellationToken, TransactionIsolationLevel);
 
         UserSession? foundSession = await FindUserSessionById(requestSession, cancellationToken);
         if (foundSession is null)
@@ -132,7 +134,6 @@ public sealed class AccountSerivce : IAccountService
         var newAccount = new Account(account.Id, account.PinCode, account.Balance.IncreaseBy(requestMoney));
         newAccount = await _accountRepository.UpdateAsync(newAccount, cancellationToken);
 
-        await _transactionProvider.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
         return new DepositMoney.Response.Success(newAccount.MapToDto());
