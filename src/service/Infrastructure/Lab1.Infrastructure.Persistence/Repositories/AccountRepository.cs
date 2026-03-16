@@ -69,7 +69,9 @@ public sealed class AccountRepository : IAccountRepository
         const string sql = """
            SELECT id, pincode, balance
            FROM accounts
-           WHERE (account_id = ANY(:ids) and (:key_cursor IS NULL or account_id > :key_cursor))
+           WHERE (
+               (cardinality(:ids) = 0 or account_id = ANY(:ids))
+                and (:key_cursor IS NULL or account_id > :key_cursor))
            LIMIT :page_size;
         """;
 

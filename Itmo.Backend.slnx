@@ -5,7 +5,9 @@
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/console-client/" />
-  <Folder Name="/src/service/" />
+  <Folder Name="/src/service/">
+    <Project Path="src\service\Main\Main.csproj" Type="Classic C#" />
+  </Folder>
   <Folder Name="/src/service/Application/">
     <Project Path="src\service\Application\Lab1.Application.Abstractions\Lab1.Application.Abstractions.csproj" Type="Classic C#" />
     <Project Path="src\service\Application\Lab1.Application\Lab1.Application.csproj" Type="Classic C#" />
@@ -17,6 +19,8 @@
   <Folder Name="/src/service/Infrastructure/">
     <Project Path="src\service\Infrastructure\Lab1.Infrastructure.Persistence\Lab1.Infrastructure.Persistence.csproj" Type="Classic C#" />
   </Folder>
-  <Folder Name="/src/service/Presentation/" />
+  <Folder Name="/src/service/Presentation/">
+    <Project Path="src\service\Presentation\Lab1.Presentation.Http\Lab1.Presentation.Http.csproj" Type="Classic C#" />
+  </Folder>
   <Folder Name="/tests/" />
 </Solution>

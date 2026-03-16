@@ -8,6 +8,4 @@ public interface IAdminSessionRepository
     Task<AdminSession> AddAsync(AdminSession adminSession, CancellationToken cancellationToken);
 
     IAsyncEnumerable<AdminSession> QueryAsync(SessionQuery query, CancellationToken cancellationToken);
-
-    Task<AdminSession?> FindBySessionAsync(SessionId sessionId, CancellationToken cancellationToken);
 }

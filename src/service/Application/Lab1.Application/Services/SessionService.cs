@@ -42,7 +42,7 @@ public sealed class SessionService : ISessionService
         if (account.PinCode != pinCode)
             return new CreateUserSession.Response.Failure("Wrong pin code");
 
-        var session = new UserSession(SessionId.Default, accountId);
+        var session = new UserSession(null, SessionId.Default, accountId);
         session = await _users.AddAsync(session, cancellationToken);
         return new CreateUserSession.Response.Success(session.MapToDto());
     }
@@ -54,9 +54,9 @@ public sealed class SessionService : ISessionService
             return new CreateAdminSession.Response.Failure("Wrong password");
         }
 
-        var adminSession = new AdminSession(SessionId.Default);
+        var adminSession = new AdminSession(null, SessionId.Default);
         adminSession = await _adminSessions.AddAsync(adminSession, cancellationToken);
 
-        return new CreateAdminSession.Response.Success(adminSession.Id.Value);
+        return new CreateAdminSession.Response.Success(adminSession.SessionGuid.Value);
     }
 }

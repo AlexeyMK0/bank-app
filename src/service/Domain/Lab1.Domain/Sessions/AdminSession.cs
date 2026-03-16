@@ -1,3 +1,4 @@
 namespace Lab1.Domain.Sessions;
 
-public sealed record AdminSession(SessionId Id);
+// TODO: add id processing
+public sealed record AdminSession(long? Id, SessionId SessionGuid);

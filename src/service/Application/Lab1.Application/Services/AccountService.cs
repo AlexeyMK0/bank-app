@@ -47,7 +47,7 @@ public sealed class AccountService : IAccountService
 
         await using ITransaction transaction = await _transactionProvider.BeginTransactionAsync(cancellationToken, TransactionIsolationLevel);
 
-        if (await _adminSessionRepository.FindBySessionAsync(requestSession, cancellationToken) is null)
+        if (await FindAdminSessionById(requestSession, cancellationToken) is null)
         {
             return new CreateAccount.Response.Failure("Session not found");
         }
@@ -176,6 +176,15 @@ public sealed class AccountService : IAccountService
     private async Task<UserSession?> FindUserSessionById(SessionId sessionId, CancellationToken cancellationToken)
     {
         return await _userSessionRepository
+            .QueryAsync(
+                SessionQuery.Build(builder => builder.WithPageSize(1).WithSessionId(sessionId)),
+                cancellationToken)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    private async Task<AdminSession?> FindAdminSessionById(SessionId sessionId, CancellationToken cancellationToken)
+    {
+        return await _adminSessionRepository
             .QueryAsync(
                 SessionQuery.Build(builder => builder.WithPageSize(1).WithSessionId(sessionId)),
                 cancellationToken)

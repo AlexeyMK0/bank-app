@@ -7,6 +7,6 @@ public static class UserSessionMappingExtension
 {
     public static UserSessionDto MapToDto(this UserSession userSession)
     {
-        return new UserSessionDto(userSession.Id.Value, userSession.AccountId.Value);
+        return new UserSessionDto(userSession.SessionGuid.Value, userSession.AccountId.Value);
     }
 }
