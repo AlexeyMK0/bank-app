@@ -22,21 +22,22 @@ public sealed class UserSessionRepository : IUserSessionRepository
     public async Task<UserSession> AddAsync(UserSession userSession, CancellationToken cancellationToken)
     {
         const string sql = """
-                           INSERT INTO users(session_guid, account_id)
-                           VALUES (:session_guid, :account_id)";"
+                           INSERT INTO user_sessions(session_guid, account_id)
+                           VALUES (:session_guid, :account_id)
                            RETURNING session_id
                            """;
 
+        var guid = Guid.NewGuid();
         var connection = (NpgsqlConnection)await _dbSession.GetConnectionAsync(cancellationToken);
         var transaction = (NpgsqlTransaction?)_dbSession.CurrentTransaction;
         await using var command = new NpgsqlCommand(sql, connection, transaction);
         command.CommandText = sql;
 
-        command.Parameters.AddWithValue("session_guid", userSession.SessionGuid.Value);
+        command.Parameters.AddWithValue("session_guid", guid);
         command.Parameters.AddWithValue("account_id", userSession.AccountId.Value);
 
         long id = Convert.ToInt64(await command.ExecuteScalarAsync(cancellationToken));
-        return new UserSession(id, userSession.SessionGuid, userSession.AccountId);
+        return new UserSession(id, new SessionId(guid), userSession.AccountId);
     }
 
     public async IAsyncEnumerable<UserSession> QueryAsync(
@@ -45,7 +46,7 @@ public sealed class UserSessionRepository : IUserSessionRepository
     {
         const string sql = """
                            SELECT session_id, session_guid, account_id
-                           FROM users
+                           FROM user_sessions
                            """;
 
         var connection = (NpgsqlConnection)await _dbSession.GetConnectionAsync(cancellationToken);

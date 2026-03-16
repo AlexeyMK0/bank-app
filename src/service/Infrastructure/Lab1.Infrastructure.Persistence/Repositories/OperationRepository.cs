@@ -47,7 +47,7 @@ public sealed class OperationRepository : IOperationRepository
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         const string sql = """
-                           SELECT operation_id, operation_type, operation_time, account_id, session_id
+                           SELECT operation_id, operation_type, operation_time, account_id, session_guid
                            FROM operations
                            """;
 

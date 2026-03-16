@@ -1,12 +1,17 @@
+using Contracts.Accounts;
+using Contracts.Accounts.Model;
+using Contracts.Accounts.Operations;
+using Lab1.Presentation.Http.Operations;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
-namespace Lab1.Presentation.Http;
+namespace Lab1.Presentation.Http.Controllers;
 
 [ApiController]
 [Route("api/account")]
 public class AccountController : ControllerBase
 {
-    /*private readonly IAccountService _accountService;
+    private readonly IAccountService _accountService;
 
     public AccountController(IAccountService accountService)
     {
@@ -14,23 +19,27 @@ public class AccountController : ControllerBase
     }
 
     [HttpGet("balance")]
-    public ActionResult<BalanceDto> CheckAccountBalance(Guid sessionId)
+    public async Task<ActionResult<CheckBalance.Response>> CheckAccountBalance(
+        Guid sessionId,
+        CancellationToken cancellationToken)
     {
         var request = new CheckBalance.Request(sessionId);
-        CheckBalance.Response response = _accountService.CheckBalance(request);
+        CheckBalance.Response response = await _accountService.CheckBalanceAsync(request, cancellationToken);
         return response switch
         {
-            CheckBalance.Response.Success success => Ok(success.Balance),
-            CheckBalance.Response.Failure failure => BadRequest(failure.Message),
+            CheckBalance.Response.Success success => Ok(success),
+            CheckBalance.Response.Failure failure => BadRequest(failure),
             _ => throw new UnreachableException(),
         };
     }
 
     [HttpPost("create")]
-    public ActionResult<AccountDto> CreateNewAccount([FromBody] CreateAccountRequest httpRequest)
+    public async Task<ActionResult<AccountDto>> CreateNewAccount(
+        [FromBody] CreateAccountRequest httpRequest,
+        CancellationToken cancellationToken)
     {
         var request = new CreateAccount.Request(httpRequest.PinCode, httpRequest.SessionId);
-        CreateAccount.Response response = _accountService.CreateAccount(request);
+        CreateAccount.Response response = await _accountService.CreateAccountAsync(request, cancellationToken);
         return response switch
         {
             CreateAccount.Response.Success success => Ok(success.AccountDto),
@@ -40,10 +49,12 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost("deposit")]
-    public ActionResult<AccountDto> DepositSum([FromBody] DepositMoneyRequest httpRequest)
+    public async Task<ActionResult<AccountDto>> DepositSum(
+        [FromBody] DepositMoneyRequest httpRequest,
+        CancellationToken cancellationToken)
     {
         var request = new DepositMoney.Request(httpRequest.Amount, httpRequest.SessionId);
-        DepositMoney.Response response = _accountService.DepositMoney(request);
+        DepositMoney.Response response = await _accountService.DepositMoneyAsync(request, cancellationToken);
         return response switch
         {
             DepositMoney.Response.Success success => Ok(success.AccountDto),
@@ -53,10 +64,12 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost("withdraw")]
-    public ActionResult<AccountDto> WithdrawSum([FromBody] WithdrawMoneyRequest httpRequest)
+    public async Task<ActionResult<AccountDto>> WithdrawSum(
+        [FromBody] WithdrawMoneyRequest httpRequest,
+        CancellationToken cancellationToken)
     {
         var request = new WithdrawMoney.Request(httpRequest.Amount, httpRequest.SessionId);
-        WithdrawMoney.Response response = _accountService.WithdrawMoney(request);
+        WithdrawMoney.Response response = await _accountService.WithdrawMoneyAsync(request, cancellationToken);
         return response switch
         {
             WithdrawMoney.Response.Success success => Ok(success.AccountDto),
@@ -66,15 +79,18 @@ public class AccountController : ControllerBase
     }
 
     [HttpGet("history")]
-    public ActionResult<HistoryDto> CheckHistory(Guid sessionId)
+    public async Task<ActionResult<HistoryDto>> CheckHistory(
+        Guid sessionId,
+        CancellationToken cancellationToken)
     {
-        var request = new OperationHistory.Request(sessionId);
-        OperationHistory.Response response = _accountService.OperationHistory(request);
+        // TODO: add key cursor and page-size support
+        var request = new OperationHistory.Request(sessionId, null, 100);
+        OperationHistory.Response response = await _accountService.OperationHistoryAsync(request, cancellationToken);
         return response switch
         {
             OperationHistory.Response.Success success => Ok(success.HistoryDto),
             OperationHistory.Response.Failure failure => BadRequest(failure.Message),
             _ => throw new UnreachableException(),
         };
-    }*/
+    }
 }

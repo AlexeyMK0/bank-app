@@ -24,9 +24,9 @@ public sealed class AccountRepository : IAccountRepository
         CancellationToken cancellationToken)
     {
         const string sql = """
-           INSERT INTO "accounts" (balance, pincode)
+           INSERT INTO "accounts" (account_balance, account_pincode)
            VALUES (:balance, :pincode)
-           RETURNING id;
+           RETURNING account_id;
        """;
 
         var connection = (NpgsqlConnection)await _dbSession.GetConnectionAsync(cancellationToken);
@@ -49,12 +49,13 @@ public sealed class AccountRepository : IAccountRepository
         const string sql = """
             UPDATE accounts
             SET account_pincode = :pincode, account_balance = :balance
-            WHERE account_id = :id";"
+            WHERE account_id = :account_id
         """;
 
         var connection = (NpgsqlConnection)await _dbSession.GetConnectionAsync(cancellationToken);
         var transaction = (NpgsqlTransaction?)_dbSession.CurrentTransaction;
         await using var command = new NpgsqlCommand(sql, connection, transaction);
+        command.Parameters.Add(new NpgsqlParameter("account_id", account.Id.Value));
         command.Parameters.Add(new NpgsqlParameter("balance", account.Balance.Value));
         command.Parameters.Add(new NpgsqlParameter("pincode", account.PinCode.Value));
 
@@ -67,7 +68,7 @@ public sealed class AccountRepository : IAccountRepository
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         const string sql = """
-           SELECT id, pincode, balance
+           SELECT account_id, account_pincode, account_balance
            FROM accounts
            WHERE (
                (cardinality(:ids) = 0 or account_id = ANY(:ids))
@@ -87,9 +88,9 @@ public sealed class AccountRepository : IAccountRepository
         while (await reader.ReadAsync(cancellationToken))
         {
             yield return new Account(
-                new AccountId(reader.GetInt64("id")),
-                new PinCode(reader.GetString("pincode")),
-                new Money(reader.GetDecimal("balance")));
+                new AccountId(reader.GetInt64("account_id")),
+                new PinCode(reader.GetString("account_pincode")),
+                new Money(reader.GetDecimal("account_balance")));
         }
     }
 }
