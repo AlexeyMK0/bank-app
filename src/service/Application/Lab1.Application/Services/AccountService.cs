@@ -5,10 +5,12 @@ using Abstractions.Transactions;
 using Contracts.Accounts;
 using Contracts.Accounts.Operations;
 using Lab1.Application.Mappers;
+using Lab1.Application.Model;
 using Lab1.Domain.Accounts;
 using Lab1.Domain.Operations;
 using Lab1.Domain.Sessions;
 using Lab1.Domain.ValueObjects;
+using Microsoft.Extensions.Options;
 using System.Data;
 using System.Diagnostics;
 
@@ -16,8 +18,7 @@ namespace Lab1.Application.Services;
 
 public sealed class AccountService : IAccountService
 {
-    // TODO: Add optional for it
-    private const IsolationLevel TransactionIsolationLevel = IsolationLevel.ReadCommitted;
+    private readonly IsolationLevel _isolationLevel;
 
     private readonly IAccountRepository _accountRepository;
     private readonly IAdminSessionRepository _adminSessionRepository;
@@ -30,13 +31,15 @@ public sealed class AccountService : IAccountService
         IAdminSessionRepository adminSessionRepository,
         IUserSessionRepository userSessionRepository,
         ITransactionProvider transactionProvider,
-        IOperationHistoryWriter operationWriter)
+        IOperationHistoryWriter operationWriter,
+        IOptions<DefaultIsolationLevel> isolationLevel)
     {
         _accountRepository = accountRepository;
         _adminSessionRepository = adminSessionRepository;
         _userSessionRepository = userSessionRepository;
         _transactionProvider = transactionProvider;
         _operationWriter = operationWriter;
+        _isolationLevel = isolationLevel.Value.IsolationLevel;
     }
 
     public async Task<CreateAccount.Response> CreateAccountAsync(
@@ -52,7 +55,7 @@ public sealed class AccountService : IAccountService
         }
 
         await using ITransaction transaction =
-            await _transactionProvider.BeginTransactionAsync(cancellationToken, TransactionIsolationLevel);
+            await _transactionProvider.BeginTransactionAsync(cancellationToken, _isolationLevel);
 
         Account account = await _accountRepository.AddAsync(
             new Account(AccountId.Default, pinCode, Money.Zero),
@@ -100,7 +103,7 @@ public sealed class AccountService : IAccountService
         var requestMoney = new Money(request.Amount);
 
         await using ITransaction transaction =
-            await _transactionProvider.BeginTransactionAsync(cancellationToken, TransactionIsolationLevel);
+            await _transactionProvider.BeginTransactionAsync(cancellationToken, _isolationLevel);
 
         UserSession? foundSession =
             await _userSessionRepository.FindBySessionIdAsync(requestSession, cancellationToken);
@@ -130,7 +133,7 @@ public sealed class AccountService : IAccountService
         var requestMoney = new Money(request.Amount);
 
         await using ITransaction transaction =
-            await _transactionProvider.BeginTransactionAsync(cancellationToken, TransactionIsolationLevel);
+            await _transactionProvider.BeginTransactionAsync(cancellationToken, _isolationLevel);
 
         UserSession? foundSession =
             await _userSessionRepository.FindBySessionIdAsync(requestSession, cancellationToken);

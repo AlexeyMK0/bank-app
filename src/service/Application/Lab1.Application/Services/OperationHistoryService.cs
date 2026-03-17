@@ -4,16 +4,18 @@ using Abstractions.Repositories;
 using Abstractions.Transactions;
 using Contracts.OperationHistory;
 using Lab1.Application.Mappers;
+using Lab1.Application.Model;
 using Lab1.Domain.Operations;
 using Lab1.Domain.Sessions;
 using Lab1.Domain.ValueObjects;
+using Microsoft.Extensions.Options;
 using System.Data;
 
 namespace Lab1.Application.Services;
 
 public class OperationHistoryService : IOperationHistoryService
 {
-    private const IsolationLevel IsolationLevel = System.Data.IsolationLevel.ReadCommitted;
+    private readonly IsolationLevel _isolationLevel;
 
     private readonly IUserSessionRepository _sessionRepository;
     private readonly IOperationRepository _operationRepository;
@@ -25,12 +27,14 @@ public class OperationHistoryService : IOperationHistoryService
         IUserSessionRepository sessionRepository,
         IOperationRepository operationRepository,
         ITransactionProvider transactionProvider,
-        IOperationHistoryWriter operationWriter)
+        IOperationHistoryWriter operationWriter,
+        IOptions<DefaultIsolationLevel> isolationLevel)
     {
         _sessionRepository = sessionRepository;
         _operationRepository = operationRepository;
         _transactionProvider = transactionProvider;
         _operationWriter = operationWriter;
+        _isolationLevel = isolationLevel.Value.IsolationLevel;
     }
 
     public async Task<GetAccountOperations.Response> GetAccountOperationsAsync(
@@ -57,7 +61,7 @@ public class OperationHistoryService : IOperationHistoryService
             .ToArrayAsync(cancellationToken);
 
         await using ITransaction transaction =
-            await _transactionProvider.BeginTransactionAsync(cancellationToken, IsolationLevel);
+            await _transactionProvider.BeginTransactionAsync(cancellationToken, _isolationLevel);
         await _operationWriter.AddOperationRecordAsync(
             OperationType.GetHistory, foundSession.AccountId, foundSession.SessionGuid, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
