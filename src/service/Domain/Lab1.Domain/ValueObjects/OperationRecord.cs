@@ -1,7 +1,12 @@
 using Lab1.Domain.Accounts;
+using Lab1.Domain.Operations;
 using Lab1.Domain.Sessions;
 
 namespace Lab1.Domain.ValueObjects;
 
-// TODO: create enum for operationType
-public record OperationRecord(OperationRecordId Id, string OperationType, DateTimeOffset Time, AccountId AccountId, SessionId SessionId);
+public record OperationRecord(
+    OperationRecordId Id,
+    OperationType Type,
+    DateTimeOffset Time,
+    AccountId AccountId,
+    SessionId SessionId);

@@ -8,7 +8,7 @@ public static class OperationMappingExtension
     public static OperationRecordDto MapToDto(this OperationRecord record)
     {
         return new OperationRecordDto(
-            record.OperationType,
+            record.Type.ToString(),
             record.Time,
             record.AccountId.Value,
             record.SessionId.Value);

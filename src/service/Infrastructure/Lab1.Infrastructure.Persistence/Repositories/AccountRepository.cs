@@ -76,12 +76,11 @@ public sealed class AccountRepository : IAccountRepository
            LIMIT :page_size;
         """;
 
-        long[] ids = query.AccountIds.Select(id => id.Value).ToArray();
         var connection = (NpgsqlConnection)await _dbSession.GetConnectionAsync(cancellationToken);
         var transaction = (NpgsqlTransaction?)_dbSession.CurrentTransaction;
         await using var command = new NpgsqlCommand(sql, connection, transaction);
-        command.Parameters.Add(new NpgsqlParameter("ids", ids));
-        command.Parameters.Add(new NpgsqlParameter("key_cursor", long.Parse(query.KeyCursor ?? "-1")));
+        command.Parameters.Add(new NpgsqlParameter("ids", query.AccountIds.Select(id => id.Value).ToArray()));
+        command.Parameters.Add(new NpgsqlParameter("key_cursor", query.KeyCursor ?? 0L));
         command.Parameters.Add(new NpgsqlParameter("page_size", query.PageSize));
 
         await using DbDataReader reader = await command.ExecuteReaderAsync(cancellationToken);

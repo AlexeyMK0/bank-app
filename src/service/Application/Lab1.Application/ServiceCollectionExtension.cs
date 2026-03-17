@@ -1,5 +1,8 @@
+using Abstractions.OperationHistory;
 using Contracts.Accounts;
+using Contracts.OperationHistory;
 using Contracts.Sessions;
+using Lab1.Application.Model;
 using Lab1.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,6 +14,12 @@ public static class ServiceCollectionExtension
     {
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<ISessionService, SessionService>();
+        services.AddScoped<IOperationHistoryService, OperationHistoryService>();
+        services.AddScoped<IOperationHistoryWriter, OperationHistoryWriter>();
+
+        services.AddOptions<DefaultIsolationLevel>()
+            .BindConfiguration("Infrastructure:Persistence:DefaultOptions")
+            .ValidateOnStart();
 
         return services;
     }

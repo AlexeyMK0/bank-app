@@ -77,20 +77,4 @@ public class AccountController : ControllerBase
             _ => throw new UnreachableException(),
         };
     }
-
-    [HttpGet("history")]
-    public async Task<ActionResult<HistoryDto>> CheckHistory(
-        Guid sessionId,
-        CancellationToken cancellationToken)
-    {
-        // TODO: add key cursor and page-size support
-        var request = new OperationHistory.Request(sessionId, null, 100);
-        OperationHistory.Response response = await _accountService.OperationHistoryAsync(request, cancellationToken);
-        return response switch
-        {
-            OperationHistory.Response.Success success => Ok(success.HistoryDto),
-            OperationHistory.Response.Failure failure => BadRequest(failure.Message),
-            _ => throw new UnreachableException(),
-        };
-    }
 }

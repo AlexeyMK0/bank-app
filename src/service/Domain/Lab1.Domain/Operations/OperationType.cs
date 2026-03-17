@@ -2,5 +2,11 @@ namespace Lab1.Domain.Operations;
 
 public enum OperationType
 {
-    // AccountCreation,
+    CreateAccount,
+    GetHistory,
+    CheckBalance,
+    DepositMoney,
+    WithdrawMoney,
+    CreateUserSession,
+    CreateAdminSession,
 }

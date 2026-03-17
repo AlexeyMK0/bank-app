@@ -44,6 +44,7 @@ public sealed class UserSessionRepository : IUserSessionRepository
         SessionQuery query,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        // TODO: Add page cursor support
         const string sql = """
                            SELECT session_id, session_guid, account_id
                            FROM user_sessions
@@ -52,7 +53,6 @@ public sealed class UserSessionRepository : IUserSessionRepository
         var connection = (NpgsqlConnection)await _dbSession.GetConnectionAsync(cancellationToken);
         var transaction = (NpgsqlTransaction?)_dbSession.CurrentTransaction;
         await using var command = new NpgsqlCommand(sql, connection, transaction);
-        command.CommandText = sql;
 
         await using DbDataReader dataReader = await command.ExecuteReaderAsync(cancellationToken);
         while (await dataReader.ReadAsync(cancellationToken))
@@ -62,5 +62,32 @@ public sealed class UserSessionRepository : IUserSessionRepository
                 new SessionId(dataReader.GetGuid("session_guid")),
                 new AccountId(dataReader.GetInt64("account_id")));
         }
+    }
+
+    public async Task<UserSession?> FindBySessionIdAsync(SessionId sessionId, CancellationToken cancellationToken)
+    {
+        const string sql = """
+                           SELECT session_id, session_guid, account_id
+                           FROM user_sessions
+                           WHERE session_guid = :session_guid
+                           LIMIT 1;
+                           """;
+
+        var connection = (NpgsqlConnection)await _dbSession.GetConnectionAsync(cancellationToken);
+        var transaction = (NpgsqlTransaction?)_dbSession.CurrentTransaction;
+        await using var command = new NpgsqlCommand(sql, connection, transaction);
+
+        command.Parameters.Add(new NpgsqlParameter("session_guid", sessionId.Value));
+
+        await using DbDataReader dataReader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await dataReader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        return new UserSession(
+            dataReader.GetInt64("session_id"),
+            new SessionId(dataReader.GetGuid("session_guid")),
+            new AccountId(dataReader.GetInt64("account_id")));
     }
 }

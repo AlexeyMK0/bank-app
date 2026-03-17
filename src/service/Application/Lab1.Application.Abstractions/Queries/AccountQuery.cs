@@ -5,6 +5,6 @@ namespace Abstractions.Queries;
 
 [GenerateBuilder]
 public partial record AccountQuery(
-    string? KeyCursor,
+    long? KeyCursor,
     [RequiredValue] int PageSize,
     AccountId[] AccountIds);

@@ -8,4 +8,6 @@ public interface IUserSessionRepository
     Task<UserSession> AddAsync(UserSession userSession, CancellationToken cancellationToken);
 
     IAsyncEnumerable<UserSession> QueryAsync(SessionQuery query, CancellationToken cancellationToken);
+
+    Task<UserSession?> FindBySessionIdAsync(SessionId sessionId, CancellationToken cancellationToken);
 }
