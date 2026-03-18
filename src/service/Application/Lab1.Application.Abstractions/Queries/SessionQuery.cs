@@ -5,6 +5,6 @@ namespace Abstractions.Queries;
 
 [GenerateBuilder]
 public partial record SessionQuery(
-    string? KeyCursor,
+    long? KeyCursor,
     [RequiredValue] int PageSize,
     SessionId[] SessionIds);

@@ -1,12 +1,12 @@
 using Abstractions.OperationHistory;
 using Abstractions.Password;
-using Abstractions.Queries;
 using Abstractions.Repositories;
 using Abstractions.Transactions;
 using Contracts.Sessions;
 using Contracts.Sessions.Operations;
 using Lab1.Application.Mappers;
 using Lab1.Application.Model;
+using Lab1.Application.RepositoryExtensions;
 using Lab1.Domain.Accounts;
 using Lab1.Domain.Operations;
 using Lab1.Domain.Sessions;
@@ -50,11 +50,7 @@ public sealed class SessionService : ISessionService
         var pinCode = new PinCode(request.PinCode);
         var accountId = new AccountId(request.AccountId);
 
-        Account? account = await
-            _accounts.QueryAsync(
-                    AccountQuery.Build(builder => builder.WithAccountId(accountId).WithPageSize(1)),
-                    cancellationToken)
-            .FirstOrDefaultAsync(cancellationToken);
+        Account? account = await _accounts.FindAccountById(accountId, cancellationToken);
 
         if (account is null)
             return new CreateUserSession.Response.Failure($"Account {accountId.Value} not found");

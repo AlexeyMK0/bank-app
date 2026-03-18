@@ -5,6 +5,7 @@ using Abstractions.Transactions;
 using Contracts.OperationHistory;
 using Lab1.Application.Mappers;
 using Lab1.Application.Model;
+using Lab1.Application.RepositoryExtensions;
 using Lab1.Domain.Operations;
 using Lab1.Domain.Sessions;
 using Lab1.Domain.ValueObjects;

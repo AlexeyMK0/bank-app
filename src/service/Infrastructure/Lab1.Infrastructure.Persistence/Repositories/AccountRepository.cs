@@ -72,7 +72,7 @@ public sealed class AccountRepository : IAccountRepository
            FROM accounts
            WHERE (
                (cardinality(:ids) = 0 or account_id = ANY(:ids))
-                and (:key_cursor IS NULL or account_id > :key_cursor))
+                and (:key_cursor::BIGINT IS NULL or account_id > :key_cursor::BIGINT))
            LIMIT :page_size;
         """;
 
