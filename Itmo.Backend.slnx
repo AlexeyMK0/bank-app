@@ -5,22 +5,32 @@
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/console-client/" />
+  <Folder Name="/src/console-client/Application/">
+    <Project Path="src\console-client\Application\BankApp.Cli.Application.Abstractions\BankApp.Cli.Application.Abstractions.csproj" Type="Classic C#" />
+    <Project Path="src\console-client\Application\BankApp.Cli.Application.Contracts\BankApp.Cli.Application.Contracts.csproj" Type="Classic C#" />
+    <Project Path="src\console-client\Application\BankApp.Cli.Application.Models\BankApp.Cli.Application.Models.csproj" Type="Classic C#" />
+    <Project Path="src\console-client\Application\BankApp.Cli.Application\BankApp.Cli.Application.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/src/console-client/Infrastructure/">
+    <Project Path="src\console-client\Infrastructure\BankApp.Cli.Infrastructure.BankApiService\BankApp.Cli.Infrastructure.BankApiService.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/src/console-client/Presentation/" />
   <Folder Name="/src/service/">
     <Project Path="src\service\Main\Main.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/src/service/Application/">
-    <Project Path="src\service\Application\Lab1.Application.Abstractions\Lab1.Application.Abstractions.csproj" Type="Classic C#" />
-    <Project Path="src\service\Application\Lab1.Application\Lab1.Application.csproj" Type="Classic C#" />
-    <Project Path="src\service\Application\Lab1.Contracts\Lab1.Contracts.csproj" Type="Classic C#" />
+    <Project Path="src\service\Application\BankApp.Application.Abstractions\BankApp.Application.Abstractions.csproj" Type="Classic C#" />
+    <Project Path="src\service\Application\BankApp.Application\BankApp.Application.csproj" Type="Classic C#" />
+    <Project Path="src\service\Application\BankApp.Contracts\BankApp.Contracts.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/src/service/Domain/">
-    <Project Path="src\service\Domain\Lab1.Domain\Lab1.Domain.csproj" Type="Classic C#" />
+    <Project Path="src\service\Domain\BankApp.Domain\BankApp.Domain.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/src/service/Infrastructure/">
-    <Project Path="src\service\Infrastructure\Lab1.Infrastructure.Persistence\Lab1.Infrastructure.Persistence.csproj" Type="Classic C#" />
+    <Project Path="src\service\Infrastructure\BankApp.Infrastructure.Persistence\BankApp.Infrastructure.Persistence.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/src/service/Presentation/">
-    <Project Path="src\service\Presentation\Lab1.Presentation.Http\Lab1.Presentation.Http.csproj" Type="Classic C#" />
+    <Project Path="src\service\Presentation\BankApp.Presentation.Http\BankApp.Presentation.Http.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/tests/" />
 </Solution>

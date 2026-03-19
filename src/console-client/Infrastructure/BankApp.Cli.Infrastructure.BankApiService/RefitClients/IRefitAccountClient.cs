@@ -1,0 +1,34 @@
+using BankApp.Cli.Infrastructure.BankApiService.Models;
+using Refit;
+
+namespace BankApp.Cli.Infrastructure.BankApiService.RefitClients;
+
+public interface IRefitAccountClient
+{
+    [Get("/api/account/balance")]
+    Task<IApiResponse<decimal>> CheckAccountBalanceAsync(
+        [Query] Guid sessionId,
+        CancellationToken cancellationToken);
+
+    [Post("/api/account/create")]
+    Task<IApiResponse<AccountDto>> CreateNewAccountAsync(
+        [Body] CreateAccountRequest request,
+        CancellationToken cancellationToken);
+
+    [Post("/api/account/deposit")]
+    Task<IApiResponse<AccountDto>> DepositMoneyAsync(
+        [Body] DepositMoneyRequest request,
+        CancellationToken cancellationToken);
+
+    [Post("/api/account/withdraw")]
+    Task<IApiResponse<AccountDto>> WithdrawMoneyAsync(
+        [Body] WithdrawMoneyRequest request,
+        CancellationToken cancellationToken);
+
+    [Get("/api/operations/history")]
+    Task<IApiResponse<GetHistoryReponse>> GetOperationHistoryAsync(
+        [Query] string? pageToken,
+        [Query] int pageSize,
+        [Query, AliasAs("sessionId")] Guid sessionId,
+        CancellationToken cancellationToken);
+}

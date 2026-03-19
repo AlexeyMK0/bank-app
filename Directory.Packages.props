@@ -16,6 +16,8 @@
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="11.0.0-preview.2.26159.112" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageVersion Include="Npgsql" Version="10.0.1" />
+    <PackageVersion Include="Refit" Version="10.0.1" />
+    <PackageVersion Include="Refit.HttpClientFactory" Version="10.0.1" />
     <PackageVersion Include="SourceKit" Version="1.1.54" />
     <PackageVersion Include="SourceKit.Analyzers.Collections" Version="1.0.52" />
     <PackageVersion Include="SourceKit.Analyzers.Enumerable" Version="1.0.52" />

@@ -9,9 +9,9 @@
   </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Application\Lab1.Application\Lab1.Application.csproj" />
-      <ProjectReference Include="..\Infrastructure\Lab1.Infrastructure.Persistence\Lab1.Infrastructure.Persistence.csproj" />
-      <ProjectReference Include="..\Presentation\Lab1.Presentation.Http\Lab1.Presentation.Http.csproj" />
+      <ProjectReference Include="..\Application\BankApp.Application\BankApp.Application.csproj" />
+      <ProjectReference Include="..\Infrastructure\BankApp.Infrastructure.Persistence\BankApp.Infrastructure.Persistence.csproj" />
+      <ProjectReference Include="..\Presentation\BankApp.Presentation.Http\BankApp.Presentation.Http.csproj" />
     </ItemGroup>
 
 </Project>

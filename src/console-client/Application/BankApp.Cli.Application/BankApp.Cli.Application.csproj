@@ -1,0 +1,6 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\BankApp.Cli.Application.Abstractions\BankApp.Cli.Application.Abstractions.csproj" />
+    <ProjectReference Include="..\BankApp.Cli.Application.Contracts\BankApp.Cli.Application.Contracts.csproj" />
+  </ItemGroup>
+</Project>
