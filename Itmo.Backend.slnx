@@ -4,7 +4,9 @@
     <File Path="Directory.Packages.props" />
   </Folder>
   <Folder Name="/src/" />
-  <Folder Name="/src/console-client/" />
+  <Folder Name="/src/console-client/">
+    <Project Path="src\console-client\Cli\Cli.csproj" Type="Classic C#" />
+  </Folder>
   <Folder Name="/src/console-client/Application/">
     <Project Path="src\console-client\Application\BankApp.Cli.Application.Abstractions\BankApp.Cli.Application.Abstractions.csproj" Type="Classic C#" />
     <Project Path="src\console-client\Application\BankApp.Cli.Application.Contracts\BankApp.Cli.Application.Contracts.csproj" Type="Classic C#" />
@@ -14,7 +16,9 @@
   <Folder Name="/src/console-client/Infrastructure/">
     <Project Path="src\console-client\Infrastructure\BankApp.Cli.Infrastructure.BankApiService\BankApp.Cli.Infrastructure.BankApiService.csproj" Type="Classic C#" />
   </Folder>
-  <Folder Name="/src/console-client/Presentation/" />
+  <Folder Name="/src/console-client/Presentation/">
+    <Project Path="src\console-client\Presentation\BankApp.Cli.Presentation.Cli\BankApp.Cli.Presentation.Cli.csproj" Type="Classic C#" />
+  </Folder>
   <Folder Name="/src/service/">
     <Project Path="src\service\Main\Main.csproj" Type="Classic C#" />
   </Folder>

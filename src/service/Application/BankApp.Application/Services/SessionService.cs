@@ -23,14 +23,14 @@ public sealed class SessionService : ISessionService
     private readonly IAccountRepository _accounts;
     private readonly IUserSessionRepository _users;
     private readonly IAdminSessionRepository _adminSessions;
-    private readonly IPasswordProvider _passwordProvider;
+    private readonly IPasswordProvider _systemPasswordProvider;
     private readonly IOperationHistoryWriter _operationWriter;
     private readonly ITransactionProvider _transactionProvider;
 
     public SessionService(
         IAccountRepository repository,
         IUserSessionRepository users,
-        IPasswordProvider passwordProvider,
+        IPasswordProvider systemPasswordProvider,
         IAdminSessionRepository adminSessions,
         ITransactionProvider transactionProvider,
         IOptions<DefaultIsolationLevel> isolationLevelOptions,
@@ -38,7 +38,7 @@ public sealed class SessionService : ISessionService
     {
         _accounts = repository;
         _users = users;
-        _passwordProvider = passwordProvider;
+        _systemPasswordProvider = systemPasswordProvider;
         _adminSessions = adminSessions;
         _transactionProvider = transactionProvider;
         _operationWriter = operationWriter;
@@ -74,7 +74,7 @@ public sealed class SessionService : ISessionService
 
     public async Task<CreateAdminSession.Response> CreateAdminSessionAsync(CreateAdminSession.Request request, CancellationToken cancellationToken)
     {
-        if (_passwordProvider.Password != request.SystemPassword)
+        if (_systemPasswordProvider.Password != request.SystemPassword)
         {
             return new CreateAdminSession.Response.Failure("Wrong password");
         }

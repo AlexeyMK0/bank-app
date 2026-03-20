@@ -9,12 +9,12 @@ namespace BankApp.Cli.Application.Services;
 
 public class SessionService : ISessionService
 {
-    private readonly ISessionKeeper _sessionKeeper;
+    private readonly IUserContext _userContext;
     private readonly ISessionClient _sessionClient;
 
-    public SessionService(ISessionKeeper sessionKeeper, ISessionClient sessionClient)
+    public SessionService(IUserContext userContext, ISessionClient sessionClient)
     {
-        _sessionKeeper = sessionKeeper;
+        _userContext = userContext;
         _sessionClient = sessionClient;
     }
 
@@ -22,7 +22,7 @@ public class SessionService : ISessionService
         CreateUserSession.Request request,
         CancellationToken cancellationToken)
     {
-        if (request.StayLogged is true && _sessionKeeper.CurrentSession is not null)
+        if (request.StayLogged is true && _userContext.CurrentSession is not null)
         {
             return new CreateUserSession.Result.Failure("You are already logged in");
         }
@@ -35,8 +35,11 @@ public class SessionService : ISessionService
         {
             case CreateUserSessionClient.Result.Success success:
                 if (request.StayLogged is true)
-                    _sessionKeeper.CurrentSession = success.CreatedSession.SessionId;
-                return new CreateUserSession.Result.Success(success.CreatedSession.SessionId);
+                {
+                    _userContext.CurrentSession = success.CreatedSession.SessionId;
+                }
+
+                return new CreateUserSession.Result.Success();
             case CreateUserSessionClient.Result.Failure failure:
                 return new CreateUserSession.Result.Failure(failure.Reason);
             default:
@@ -48,7 +51,7 @@ public class SessionService : ISessionService
         CreateAdminSession.Request request,
         CancellationToken cancellationToken)
     {
-        if (request.StayLogged is true && _sessionKeeper.CurrentSession is not null)
+        if (request.StayLogged is true && _userContext.CurrentSession is not null)
         {
             return new CreateAdminSession.Result.Failure("You are already logged in");
         }
@@ -61,8 +64,8 @@ public class SessionService : ISessionService
         {
             case CreateAdminSessionClient.Result.Success success:
                 if (request.StayLogged is true)
-                    _sessionKeeper.CurrentSession = success.CreatedSessionId;
-                return new CreateAdminSession.Result.Success(success.CreatedSessionId);
+                    _userContext.CurrentSession = success.CreatedSessionId;
+                return new CreateAdminSession.Result.Success();
             case CreateAdminSessionClient.Result.Failure failure:
                 return new CreateAdminSession.Result.Failure(failure.Reason);
             default:
@@ -70,26 +73,14 @@ public class SessionService : ISessionService
         }
     }
 
-    public Login.Result Login(Login.Request request)
-    {
-        // TODO: maybe check if session exists
-        if (_sessionKeeper.CurrentSession is not null)
-        {
-            return new Login.Result.Failure("You are already logged in");
-        }
-
-        _sessionKeeper.CurrentSession = request.SessionId;
-        return new Login.Result.Success();
-    }
-
     public Logout.Result Logout()
     {
-        if (_sessionKeeper.CurrentSession is null)
+        if (_userContext.CurrentSession is null)
         {
             return new Logout.Result.Failure("You are not logged in");
         }
 
-        _sessionKeeper.CurrentSession = null;
+        _userContext.CurrentSession = null;
         return new Logout.Result.Success();
     }
 }

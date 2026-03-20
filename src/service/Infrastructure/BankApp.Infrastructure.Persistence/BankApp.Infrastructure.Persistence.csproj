@@ -17,6 +17,7 @@
       <PackageReference Include="FluentMigrator.Runner.Postgres" />
       <PackageReference Include="Microsoft.Extensions.Logging.Console" />
       <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+      <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
       <PackageReference Include="Npgsql" />
     </ItemGroup>
 

@@ -19,7 +19,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpGet("balance")]
-    public async Task<ActionResult<CheckBalance.Response>> CheckAccountBalance(
+    public async Task<ActionResult<double>> CheckAccountBalance(
         [FromQuery] Guid sessionId,
         CancellationToken cancellationToken)
     {
@@ -27,7 +27,7 @@ public class AccountController : ControllerBase
         CheckBalance.Response response = await _accountService.CheckBalanceAsync(request, cancellationToken);
         return response switch
         {
-            CheckBalance.Response.Success success => Ok(success),
+            CheckBalance.Response.Success success => Ok(success.Balance),
             CheckBalance.Response.Failure failure => BadRequest(failure),
             _ => throw new UnreachableException(),
         };

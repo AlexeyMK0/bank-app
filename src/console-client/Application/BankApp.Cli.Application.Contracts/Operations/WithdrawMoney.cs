@@ -2,7 +2,7 @@ namespace BankApp.Cli.Application.Contracts.Operations;
 
 public class WithdrawMoney
 {
-    public sealed record Request(Guid AccountId, decimal Amount);
+    public sealed record Request(decimal Amount);
 
     public abstract record Result
     {

@@ -4,7 +4,6 @@ namespace BankApp.Cli.Application.Abstractions.Operations;
 
 public sealed class GetHistoryClient
 {
-    // TODO: maybe add PageToken
     public readonly record struct Request(Guid SessionId, int EntriesCount);
 
     public abstract record Result

@@ -38,9 +38,7 @@ public static class ServiceCollectionExtension
         configuration.GetRequiredSection("Infrastructure:Persistence:Postgres").Bind(builder);
         string connectionString = builder.ConnectionString;
 
-#pragma warning disable CA1873
-        Logger.LogInformation("Postgres connection string: {connectionString}", connectionString);
-#pragma warning restore CA1873
+        Logger.LogInformation("Postgres connection string: " + connectionString);
 
         services.AddSingleton(NpgsqlDataSource.Create(connectionString));
 
@@ -51,7 +49,8 @@ public static class ServiceCollectionExtension
                 .WithMigrationsIn(typeof(IMigrationsAssemblyMarker).Assembly));
 
         services.AddOptions<PasswordOptions>()
-            .BindConfiguration("PasswordSettings")
+            .BindConfiguration("SystemPasswordSettings")
+            .ValidateDataAnnotations()
             .ValidateOnStart();
 
         return services;

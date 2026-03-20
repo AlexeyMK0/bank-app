@@ -12,7 +12,5 @@ public interface ISessionService
         CreateAdminSession.Request request,
         CancellationToken cancellationToken);
 
-    Login.Result Login(Login.Request request);
-
     Logout.Result Logout();
 }

@@ -23,9 +23,17 @@ public class OperationHistoryController : ControllerBase
         [FromQuery] CheckHistoryRequest httpRequest,
         CancellationToken cancellationToken)
     {
-        GetAccountOperations.PageToken? pageToken = httpRequest.PageToken is null
-            ? null
-            : JsonSerializer.Deserialize<GetAccountOperations.PageToken>(httpRequest.PageToken);
+        GetAccountOperations.PageToken? pageToken;
+        try
+        {
+            pageToken = httpRequest.PageToken is null
+                ? null
+                : JsonSerializer.Deserialize<GetAccountOperations.PageToken>(httpRequest.PageToken);
+        }
+        catch (JsonException ex)
+        {
+            return BadRequest(ex.Message);
+        }
 
         var request = new GetAccountOperations.Request(httpRequest.SessionId, pageToken, httpRequest.PageSize);
         GetAccountOperations.Response response = await _historyService.GetAccountOperationsAsync(request, cancellationToken);
@@ -33,9 +41,16 @@ public class OperationHistoryController : ControllerBase
         {
             GetAccountOperations.Response.Success success => new CheckHistoryResponse(
                 success.HistoryDto.Operations,
-                success.KeyCursor is null ? null : JsonSerializer.Serialize(success.KeyCursor.Token)),
+                success.KeyCursor is null ? null : SerializePageToken(success.KeyCursor)),
             GetAccountOperations.Response.Failure failure => BadRequest(failure.Message),
             _ => throw new UnreachableException(),
         };
+    }
+
+    private static string? SerializePageToken(GetAccountOperations.PageToken? pageToken)
+    {
+        return pageToken is null
+            ? null
+            : JsonSerializer.Serialize(new GetAccountOperations.PageToken(pageToken.Token));
     }
 }

@@ -24,11 +24,9 @@ public class Initial1773333471 : IMigration
                 (
                     operation_id BIGSERIAL NOT NULL PRIMARY KEY,
                     operation_type TEXT NOT NULL,
-                    operation_time timestamp with time zone NOT NULL,
+                    operation_time TIMESTAMP with time zone NOT NULL,
                     account_id BIGSERIAL NOT NULL,
-                    session_guid UUID NOT NULL,
-                    
-                    FOREIGN KEY (account_id) REFERENCES accounts(account_id)
+                    session_guid UUID NOT NULL
                 );
 
                 CREATE TABLE admin_sessions
@@ -41,9 +39,7 @@ public class Initial1773333471 : IMigration
                 (
                     session_id BIGSERIAL NOT NULL PRIMARY KEY,
                     session_guid UUID NOT NULL,
-                    account_id BIGSERIAL NOT NULL,
-                    
-                    FOREIGN KEY (account_id) REFERENCES accounts(account_id)
+                    account_id BIGSERIAL NOT NULL
                 );
                """,
         });

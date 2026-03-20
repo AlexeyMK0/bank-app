@@ -35,7 +35,7 @@ public class SessionController : ControllerBase
     }
 
     [HttpPost("admin/create")]
-    public async Task<ActionResult<Guid>> CreateAdmin(
+    public async Task<ActionResult<CreateAdminSessionResponse>> CreateAdmin(
         [FromBody] CreateAdminSessionRequest httpRequest,
         CancellationToken cancellationToken)
     {
@@ -43,7 +43,7 @@ public class SessionController : ControllerBase
         CreateAdminSession.Response response = await _sessionService.CreateAdminSessionAsync(request, cancellationToken);
         return response switch
         {
-            CreateAdminSession.Response.Success success => Ok(success.AdminSessionGuid),
+            CreateAdminSession.Response.Success success => Ok(new CreateAdminSessionResponse(success.AdminSessionGuid)),
             CreateAdminSession.Response.Failure failure => BadRequest(failure.Message),
             _ => throw new UnreachableException(),
         };

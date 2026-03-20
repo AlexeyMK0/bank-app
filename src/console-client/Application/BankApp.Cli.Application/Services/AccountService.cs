@@ -5,34 +5,35 @@ using BankApp.Cli.Application.Contracts.Operations;
 using BankApp.Cli.Application.Contracts.Services;
 using BankApp.Cli.Application.Mappers;
 using BankApp.Cli.Application.Model;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
 namespace BankApp.Cli.Application.Services;
 
-// TODO: add service client extension
 public class AccountService : IAccountService
 {
-    // TODO: add optional
-    private const int DefaultEntriesCount = 10;
-    private readonly ISessionKeeper _sessionKeeper;
+    private readonly ILogger _logger
+        = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger("BankApp.Cli.Application.Services logger");
+
+    private readonly IUserContext _userContext;
     private readonly IAccountClient _accountClient;
 
-    public AccountService(ISessionKeeper sessionKeeper, IAccountClient accountClient)
+    public AccountService(IUserContext userContext, IAccountClient accountClient)
     {
-        _sessionKeeper = sessionKeeper;
+        _userContext = userContext;
         _accountClient = accountClient;
     }
 
     public async Task<CreateAccount.Result> CreateAccountAsync(CreateAccount.Request request, CancellationToken cancellationToken)
     {
-        Guid? currentSession = _sessionKeeper.CurrentSession;
+        Guid? currentSession = _userContext.CurrentSession;
         if (currentSession is null)
         {
             return new CreateAccount.Result.Failure("You need to log in to perform any operation");
         }
 
         CreateAccountClient.Result result = await _accountClient.CreateNewAccountAsync(
-            new CreateAccountClient.Request(request.PinCode, currentSession),
+            new CreateAccountClient.Request(request.PinCode, (Guid)currentSession),
             cancellationToken);
 
         return result switch
@@ -46,14 +47,14 @@ public class AccountService : IAccountService
 
     public async Task<GetBalance.Result> GetBalanceAsync(GetBalance.Request request, CancellationToken cancellationToken)
     {
-        Guid? currentSession = _sessionKeeper.CurrentSession;
+        Guid? currentSession = _userContext.CurrentSession;
         if (currentSession is null)
         {
             return new GetBalance.Result.Failure("You need to log in to perform any operation");
         }
 
         GetBalanceClient.Result result = await _accountClient.GetBalanceAsync(
-            new GetBalanceClient.Request(currentSession),
+            new GetBalanceClient.Request((Guid)currentSession),
             cancellationToken);
 
         return result switch
@@ -66,14 +67,14 @@ public class AccountService : IAccountService
 
     public async Task<WithdrawMoney.Result> WithdrawMoneyAsync(WithdrawMoney.Request request, CancellationToken cancellationToken)
     {
-        Guid? currentSession = _sessionKeeper.CurrentSession;
+        Guid? currentSession = _userContext.CurrentSession;
         if (currentSession is null)
         {
             return new WithdrawMoney.Result.Failure("You need to log in to perform any operation");
         }
 
         WithdrawMoneyClient.Result result = await _accountClient.WithdrawMoneyAsync(
-            new WithdrawMoneyClient.Request(request.Amount, currentSession),
+            new WithdrawMoneyClient.Request(request.Amount, (Guid)currentSession),
             cancellationToken);
 
         return result switch
@@ -86,14 +87,14 @@ public class AccountService : IAccountService
 
     public async Task<DepositMoney.Result> DepositMoneyAsync(DepositMoney.Request request, CancellationToken cancellationToken)
     {
-        Guid? currentSession = _sessionKeeper.CurrentSession;
+        Guid? currentSession = _userContext.CurrentSession;
         if (currentSession is null)
         {
             return new DepositMoney.Result.Failure("You need to log in to perform any operation");
         }
 
         DepositMoneyClient.Result result = await _accountClient.DepositMoneyAsync(
-            new DepositMoneyClient.Request(request.Amount, currentSession),
+            new DepositMoneyClient.Request(request.Amount, (Guid)currentSession),
             cancellationToken);
 
         return result switch
@@ -106,15 +107,19 @@ public class AccountService : IAccountService
 
     public async Task<GetHistory.Result> GetHistoryAsync(GetHistory.Request request, CancellationToken cancellationToken)
     {
-        Guid? currentSession = _sessionKeeper.CurrentSession;
+        _logger.LogInformation("GetHistory request in service");
+
+        Guid? currentSession = _userContext.CurrentSession;
         if (currentSession is null)
         {
             return new GetHistory.Result.Failure("You need to log in to perform any operation");
         }
 
         GetHistoryClient.Result result = await _accountClient.GetHistoryAsync(
-            new GetHistoryClient.Request(currentSession, request.EntriesCount ?? DefaultEntriesCount),
+            new GetHistoryClient.Request((Guid)currentSession, request.EntriesCount),
             cancellationToken);
+
+        _logger.LogInformation("Got GetHistory response in service");
 
         return result switch
         {

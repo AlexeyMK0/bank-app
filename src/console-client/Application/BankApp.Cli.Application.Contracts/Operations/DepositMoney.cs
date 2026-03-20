@@ -2,7 +2,7 @@ namespace BankApp.Cli.Application.Contracts.Operations;
 
 public class DepositMoney
 {
-    public sealed record Request(Guid SessionId, decimal Amount);
+    public sealed record Request(decimal Amount);
 
     public abstract record Result
     {

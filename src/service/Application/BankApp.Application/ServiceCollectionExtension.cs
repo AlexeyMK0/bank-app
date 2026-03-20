@@ -19,6 +19,7 @@ public static class ServiceCollectionExtension
 
         services.AddOptions<DefaultIsolationLevel>()
             .BindConfiguration("Infrastructure:Persistence:DefaultOptions")
+            .ValidateDataAnnotations()
             .ValidateOnStart();
 
         return services;

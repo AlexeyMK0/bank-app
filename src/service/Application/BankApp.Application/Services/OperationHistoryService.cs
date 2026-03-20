@@ -4,38 +4,25 @@ using Abstractions.Repositories;
 using Abstractions.Transactions;
 using Contracts.OperationHistory;
 using Lab1.Application.Mappers;
-using Lab1.Application.Model;
 using Lab1.Application.RepositoryExtensions;
-using Lab1.Domain.Operations;
 using Lab1.Domain.Sessions;
 using Lab1.Domain.ValueObjects;
-using Microsoft.Extensions.Options;
-using System.Data;
 
 namespace Lab1.Application.Services;
 
 public class OperationHistoryService : IOperationHistoryService
 {
-    private readonly IsolationLevel _isolationLevel;
-
     private readonly IUserSessionRepository _sessionRepository;
     private readonly IOperationRepository _operationRepository;
-    private readonly ITransactionProvider _transactionProvider;
-
-    private readonly IOperationHistoryWriter _operationWriter;
 
     public OperationHistoryService(
         IUserSessionRepository sessionRepository,
         IOperationRepository operationRepository,
         ITransactionProvider transactionProvider,
-        IOperationHistoryWriter operationWriter,
-        IOptions<DefaultIsolationLevel> isolationLevel)
+        IOperationHistoryWriter operationWriter)
     {
         _sessionRepository = sessionRepository;
         _operationRepository = operationRepository;
-        _transactionProvider = transactionProvider;
-        _operationWriter = operationWriter;
-        _isolationLevel = isolationLevel.Value.IsolationLevel;
     }
 
     public async Task<GetAccountOperations.Response> GetAccountOperationsAsync(
@@ -60,12 +47,6 @@ public class OperationHistoryService : IOperationHistoryService
                     .WithPageSize(request.PageSize)),
                 cancellationToken)
             .ToArrayAsync(cancellationToken);
-
-        await using ITransaction transaction =
-            await _transactionProvider.BeginTransactionAsync(cancellationToken, _isolationLevel);
-        await _operationWriter.AddOperationRecordAsync(
-            OperationType.GetHistory, foundSession.AccountId, foundSession.SessionGuid, cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
 
         GetAccountOperations.PageToken? keyCursor = operations.Length > 0 ? new GetAccountOperations.PageToken(operations[^1].Id.Value) : null;
         return new GetAccountOperations.Response.Success(

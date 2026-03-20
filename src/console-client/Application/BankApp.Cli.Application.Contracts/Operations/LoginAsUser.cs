@@ -1,8 +1,8 @@
 namespace BankApp.Cli.Application.Contracts.Operations;
 
-public class Login
+public class LoginAsUser
 {
-    public sealed record Request(Guid SessionId);
+    public sealed record Request();
 
     public abstract record Result
     {

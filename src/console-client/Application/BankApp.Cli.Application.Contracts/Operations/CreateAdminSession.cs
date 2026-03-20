@@ -6,7 +6,7 @@ public class CreateAdminSession
 
     public abstract record Result
     {
-        public sealed record Success(Guid AdminSessionId) : Result;
+        public sealed record Success : Result;
 
         public sealed record Failure(string Reason) : Result;
     }
