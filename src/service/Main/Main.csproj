@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+      <UserSecretsId>5519f1bb-9ad5-419a-802b-6693e6d3f15e</UserSecretsId>
+  </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Application\BankApp.Application\BankApp.Application.csproj" />
+      <ProjectReference Include="..\Infrastructure\BankApp.Infrastructure.Persistence\BankApp.Infrastructure.Persistence.csproj" />
+      <ProjectReference Include="..\Presentation\BankApp.Presentation.Http\BankApp.Presentation.Http.csproj" />
+    </ItemGroup>
+
+</Project>
