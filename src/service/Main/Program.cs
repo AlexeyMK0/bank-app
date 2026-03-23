@@ -11,7 +11,12 @@ builder.Services
 
 builder.Services.AddLogging(loggerBuilder => loggerBuilder.AddConsole());
 
+builder.Services.AddSwaggerGen().AddEndpointsApiExplorer();
+
 WebApplication app = builder.Build();
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseRouting();
 app.MapControllers();

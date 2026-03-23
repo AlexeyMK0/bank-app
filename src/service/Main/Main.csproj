@@ -14,4 +14,9 @@
       <ProjectReference Include="..\Presentation\BankApp.Presentation.Http\BankApp.Presentation.Http.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" />
+      <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" />
+    </ItemGroup>
+
 </Project>
