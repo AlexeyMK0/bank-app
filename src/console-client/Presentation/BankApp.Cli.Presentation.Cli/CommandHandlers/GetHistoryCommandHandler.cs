@@ -51,12 +51,13 @@ public class GetHistoryCommandHandler : AsyncCommand<GetHistoryCommand>
     private void PrintOperations(IEnumerable<OperationRecordDto> operations)
     {
         Table table = new Table()
+            .AddColumn("#")
             .AddColumn("Time")
             .AddColumn("Type");
 
-        foreach (OperationRecordDto operation in operations)
+        foreach ((int index, OperationRecordDto operation) in operations.Index())
         {
-            table.AddRow(operation.Time.ToString(), operation.OperationType);
+            table.AddRow((index + 1).ToString(), operation.Time.ToString(), operation.OperationType);
         }
 
         AnsiConsole.Write(table);

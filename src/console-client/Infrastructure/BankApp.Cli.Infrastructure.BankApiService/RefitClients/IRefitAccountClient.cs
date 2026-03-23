@@ -10,7 +10,7 @@ public interface IRefitAccountClient
         [Query] Guid sessionId,
         CancellationToken cancellationToken);
 
-    [Post("/api/account/create")]
+    [Post("/api/account")]
     Task<IApiResponse<AccountDto>> CreateNewAccountAsync(
         [Body] CreateAccountRequest request,
         CancellationToken cancellationToken);

@@ -51,6 +51,6 @@ public class OperationHistoryController : ControllerBase
     {
         return pageToken is null
             ? null
-            : JsonSerializer.Serialize(new GetAccountOperations.PageToken(pageToken.Token));
+            : JsonSerializer.Serialize(new GetAccountOperations.PageToken(pageToken.OperationId));
     }
 }

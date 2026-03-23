@@ -22,22 +22,20 @@ public sealed class UserSessionRepository : IUserSessionRepository
     public async Task<UserSession> AddAsync(UserSession userSession, CancellationToken cancellationToken)
     {
         const string sql = """
-                           INSERT INTO user_sessions(session_guid, account_id)
-                           VALUES (:session_guid, :account_id)
-                           RETURNING session_id
-                           """;
+        INSERT INTO user_sessions(session_guid, account_id)
+        VALUES (:session_guid, :account_id)
+        """;
 
         var guid = Guid.NewGuid();
-        var connection = (NpgsqlConnection)await _dbSession.GetConnectionAsync(cancellationToken);
-        var transaction = (NpgsqlTransaction?)_dbSession.CurrentTransaction;
-        await using var command = new NpgsqlCommand(sql, connection, transaction);
+        await using DbConnection connection = await _dbSession.GetConnectionAsync(cancellationToken);
+        await using DbCommand command = connection.CreateCommand();
         command.CommandText = sql;
 
-        command.Parameters.AddWithValue("session_guid", guid);
-        command.Parameters.AddWithValue("account_id", userSession.AccountId.Value);
+        command.Parameters.Add(new NpgsqlParameter<Guid>("session_guid", guid));
+        command.Parameters.Add(new NpgsqlParameter<long>("account_id", userSession.AccountId.Value));
 
-        long id = Convert.ToInt64(await command.ExecuteScalarAsync(cancellationToken));
-        return new UserSession(id, new SessionId(guid), userSession.AccountId);
+        await command.ExecuteNonQueryAsync(cancellationToken);
+        return new UserSession(new SessionId(guid), userSession.AccountId);
     }
 
     public async IAsyncEnumerable<UserSession> QueryAsync(
@@ -45,28 +43,26 @@ public sealed class UserSessionRepository : IUserSessionRepository
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         const string sql = """
-                           SELECT session_id, session_guid, account_id
-                           FROM user_sessions
-                           WHERE (cardinality(:session_guids) = 0 or session_guid = ANY(:session_guids))
-                           and (:key_cursor::BIGINT IS NULL or session_id > :key_cursor::BIGINT)
-                           LIMIT :page_size
-                           """;
+        SELECT session_guid, account_id
+        FROM user_sessions
+            WHERE
+                (:key_cursor IS NULL or session_guid > :key_cursor)
+                and (cardinality(:session_guids) = 0 or session_guid = ANY(:session_guids))
+        LIMIT :page_size
+        """;
 
-        var connection = (NpgsqlConnection)await _dbSession.GetConnectionAsync(cancellationToken);
-        var transaction = (NpgsqlTransaction?)_dbSession.CurrentTransaction;
-        await using var command = new NpgsqlCommand(sql, connection, transaction);
+        await using DbConnection connection = await _dbSession.GetConnectionAsync(cancellationToken);
+        await using DbCommand command = connection.CreateCommand();
+        command.CommandText = sql;
 
-        command.Parameters.Add(new NpgsqlParameter("page_size", query.PageSize));
-        var keyCursorParam = new NpgsqlParameter("key_cursor", query.KeyCursor);
-        keyCursorParam.Value ??= DBNull.Value;
-        command.Parameters.Add(keyCursorParam);
-        command.Parameters.Add(new NpgsqlParameter("session_guids", query.SessionIds.Select(entry => entry.Value).ToArray()));
+        command.Parameters.Add(new NpgsqlParameter<int>("page_size", query.PageSize));
+        command.Parameters.Add(new NpgsqlParameter<Guid?>("key_cursor", query.KeyCursor));
+        command.Parameters.Add(new NpgsqlParameter<Guid[]>("session_guids", query.SessionIds.Select(entry => entry.Value).ToArray()));
 
         await using DbDataReader dataReader = await command.ExecuteReaderAsync(cancellationToken);
         while (await dataReader.ReadAsync(cancellationToken))
         {
             yield return new UserSession(
-                dataReader.GetInt64("session_id"),
                 new SessionId(dataReader.GetGuid("session_guid")),
                 new AccountId(dataReader.GetInt64("account_id")));
         }

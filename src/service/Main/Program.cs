@@ -1,5 +1,4 @@
-﻿using FluentMigrator.Runner;
-using Lab1.Application;
+﻿using Lab1.Application;
 using Lab1.Infrastructure.Persistence;
 using Lab1.Presentation.Http;
 
@@ -11,12 +10,6 @@ builder.Services
     .AddPresentationHttp();
 
 WebApplication app = builder.Build();
-
-await using (AsyncServiceScope scope = app.Services.CreateAsyncScope())
-{
-    IMigrationRunner migrationRunner = scope.ServiceProvider.GetRequiredService<IMigrationRunner>();
-    migrationRunner.MigrateUp();
-}
 
 app.UseRouting();
 app.MapControllers();

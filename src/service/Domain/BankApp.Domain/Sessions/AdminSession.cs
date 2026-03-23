@@ -1,3 +1,3 @@
 namespace Lab1.Domain.Sessions;
 
-public sealed record AdminSession(long? Id, SessionId SessionGuid);
+public sealed record AdminSession(SessionId SessionGuid);

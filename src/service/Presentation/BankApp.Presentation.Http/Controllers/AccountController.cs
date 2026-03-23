@@ -33,7 +33,7 @@ public class AccountController : ControllerBase
         };
     }
 
-    [HttpPost("create")]
+    [HttpPost]
     public async Task<ActionResult<AccountDto>> CreateNewAccount(
         [FromBody] CreateAccountRequest httpRequest,
         CancellationToken cancellationToken)

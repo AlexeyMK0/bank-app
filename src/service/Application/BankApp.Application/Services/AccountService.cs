@@ -1,45 +1,39 @@
-using Abstractions.OperationHistory;
 using Abstractions.Repositories;
 using Abstractions.Transactions;
 using Contracts.Accounts;
 using Contracts.Accounts.Operations;
 using Lab1.Application.Mappers;
-using Lab1.Application.Model;
 using Lab1.Application.RepositoryExtensions;
 using Lab1.Domain.Accounts;
 using Lab1.Domain.Operations;
 using Lab1.Domain.Sessions;
 using Lab1.Domain.ValueObjects;
-using Microsoft.Extensions.Options;
 using System.Data;
-using System.Diagnostics;
 
 namespace Lab1.Application.Services;
 
 public sealed class AccountService : IAccountService
 {
-    private readonly IsolationLevel _isolationLevel;
+    private const IsolationLevel IsolationLevel = System.Data.IsolationLevel.ReadCommitted;
 
     private readonly IAccountRepository _accountRepository;
     private readonly IAdminSessionRepository _adminSessionRepository;
     private readonly IUserSessionRepository _userSessionRepository;
     private readonly ITransactionProvider _transactionProvider;
-    private readonly IOperationHistoryWriter _operationWriter;
+    private readonly IOperationRepository _operationRepository;
 
     public AccountService(
         IAccountRepository accountRepository,
         IAdminSessionRepository adminSessionRepository,
         IUserSessionRepository userSessionRepository,
         ITransactionProvider transactionProvider,
-        IOperationHistoryWriter operationWriter,
-        IOptions<DefaultIsolationLevel> isolationLevel)
+        IOperationRepository operationRepository)
     {
         _accountRepository = accountRepository;
         _adminSessionRepository = adminSessionRepository;
         _userSessionRepository = userSessionRepository;
         _transactionProvider = transactionProvider;
-        _operationWriter = operationWriter;
-        _isolationLevel = isolationLevel.Value.IsolationLevel;
+        _operationRepository = operationRepository;
     }
 
     public async Task<CreateAccount.Response> CreateAccountAsync(
@@ -49,22 +43,21 @@ public sealed class AccountService : IAccountService
         var requestSession = new SessionId(request.SessionId);
         var pinCode = new PinCode(request.PinCode);
 
-        if (await _adminSessionRepository.FindAdminSessionById(requestSession, cancellationToken) is null)
+        AdminSession? adminSession = await _adminSessionRepository
+            .FindAdminSessionById(requestSession, cancellationToken);
+        if (adminSession is null)
         {
             return new CreateAccount.Response.Failure("Session not found");
         }
 
-        await using ITransaction transaction =
-            await _transactionProvider.BeginTransactionAsync(cancellationToken, _isolationLevel);
+        using ITransaction transaction = _transactionProvider
+            .BeginTransaction(IsolationLevel);
 
         Account account = await _accountRepository.AddAsync(
             new Account(AccountId.Default, pinCode, Money.Zero),
             cancellationToken);
 
-        await _operationWriter.AddOperationRecordAsync(
-            OperationType.CreateAccount, account.Id, requestSession, cancellationToken);
-
-        await transaction.CommitAsync(cancellationToken);
+        transaction.Commit();
 
         return new CreateAccount.Response.Success(account.MapToDto());
     }
@@ -75,19 +68,20 @@ public sealed class AccountService : IAccountService
     {
         var requestSession = new SessionId(request.SessionId);
 
-        UserSession? foundSession
-            = await _userSessionRepository.FindBySessionIdAsync(requestSession, cancellationToken);
+        UserSession? foundSession = await _userSessionRepository
+            .FindBySessionIdAsync(requestSession, cancellationToken);
 
         if (foundSession is null)
         {
             return new CheckBalance.Response.Failure("Session not found");
         }
 
-        Account account = await _accountRepository.FindAccountById(foundSession.AccountId, cancellationToken)
-            ?? throw new UnreachableException("session not bound to account");
-
-        await _operationWriter.AddOperationRecordAsync(
-            OperationType.CheckBalance, account.Id, requestSession, cancellationToken);
+        Account? account = await _accountRepository
+            .FindAccountByIdAsync(foundSession.AccountId, cancellationToken);
+        if (account is null)
+        {
+            return new CheckBalance.Response.Failure($"Session {foundSession} not bound to account");
+        }
 
         return new CheckBalance.Response.Success(account.Balance.Value);
     }
@@ -98,25 +92,38 @@ public sealed class AccountService : IAccountService
     {
         var requestSession = new SessionId(request.SessionId);
         var requestMoney = new Money(request.Amount);
-        UserSession? foundSession =
-            await _userSessionRepository.FindBySessionIdAsync(requestSession, cancellationToken);
+        UserSession? foundSession = await _userSessionRepository
+            .FindBySessionIdAsync(requestSession, cancellationToken);
         if (foundSession is null)
         {
             return new WithdrawMoney.Response.Failure("Session not found");
         }
 
-        Account account = await _accountRepository.FindAccountById(foundSession.AccountId, cancellationToken)
-                          ?? throw new UnreachableException("session not bound to account");
-        var newAccount = new Account(account.Id, account.PinCode, account.Balance.DecreaseBy(requestMoney));
+        Account? account = await _accountRepository
+            .FindAccountByIdAsync(foundSession.AccountId, cancellationToken);
+        if (account is null)
+        {
+            return new WithdrawMoney.Response.Failure($"Session {foundSession} not bound to account");
+        }
 
-        await using ITransaction transaction =
-            await _transactionProvider.BeginTransactionAsync(cancellationToken, _isolationLevel);
+        Account newAccount = account with
+            { Balance = account.Balance.DecreaseBy(requestMoney) };
 
-        newAccount = await _accountRepository.UpdateAsync(newAccount, cancellationToken);
-        await _operationWriter.AddOperationRecordAsync(
-            OperationType.WithdrawMoney, account.Id, requestSession, cancellationToken);
+        using ITransaction transaction = _transactionProvider
+            .BeginTransaction(IsolationLevel);
 
-        await transaction.CommitAsync(cancellationToken);
+        newAccount = await _accountRepository
+            .UpdateAsync(newAccount, cancellationToken);
+
+        var operationRecord = new OperationRecord(
+            OperationRecordId.Default,
+            OperationType.WithdrawMoney,
+            DateTimeOffset.Now,
+            account.Id,
+            requestSession);
+        await _operationRepository.AddAsync(operationRecord, cancellationToken);
+
+        transaction.Commit();
 
         return new WithdrawMoney.Response.Success(newAccount.MapToDto());
     }
@@ -127,46 +134,38 @@ public sealed class AccountService : IAccountService
     {
         var requestSession = new SessionId(request.SessionId);
         var requestMoney = new Money(request.Amount);
-
-        UserSession? foundSession =
-            await _userSessionRepository.FindBySessionIdAsync(requestSession, cancellationToken);
+        UserSession? foundSession = await _userSessionRepository
+            .FindBySessionIdAsync(requestSession, cancellationToken);
         if (foundSession is null)
         {
             return new DepositMoney.Response.Failure("Session not found");
         }
 
-        Account account = await _accountRepository.FindAccountById(foundSession.AccountId, cancellationToken)
-                          ?? throw new UnreachableException("session not bound to account");
-        var newAccount = new Account(account.Id, account.PinCode, account.Balance.IncreaseBy(requestMoney));
+        Account? account = await _accountRepository
+            .FindAccountByIdAsync(foundSession.AccountId, cancellationToken);
+        if (account is null)
+        {
+            return new DepositMoney.Response.Failure($"Session {foundSession} not bound to account");
+        }
 
-        await using ITransaction transaction =
-            await _transactionProvider.BeginTransactionAsync(cancellationToken, _isolationLevel);
+        Account newAccount = account with
+            { Balance = account.Balance.IncreaseBy(requestMoney) };
 
-        newAccount = await _accountRepository.UpdateAsync(newAccount, cancellationToken);
-        await _operationWriter.AddOperationRecordAsync(
-            OperationType.DepositMoney, account.Id, requestSession, cancellationToken);
+        using ITransaction transaction = _transactionProvider
+            .BeginTransaction(IsolationLevel);
 
-        await transaction.CommitAsync(cancellationToken);
+        newAccount = await _accountRepository
+            .UpdateAsync(newAccount, cancellationToken);
+        var operationRecord = new OperationRecord(
+            OperationRecordId.Default,
+            OperationType.DepositMoney,
+            DateTimeOffset.Now,
+            account.Id,
+            requestSession);
+        await _operationRepository.AddAsync(operationRecord, cancellationToken);
+
+        transaction.Commit();
 
         return new DepositMoney.Response.Success(newAccount.MapToDto());
     }
-
-    /*private async Task<Account?> FindAccountById(AccountId accountId, CancellationToken cancellationToken)
-    {
-        return await _accountRepository
-            .QueryAsync(
-                AccountQuery.Build(builder =>
-                    builder.WithPageSize(1).WithAccountId(accountId)),
-                cancellationToken)
-            .FirstOrDefaultAsync(cancellationToken);
-    }*/
-
-    /*private async Task<AdminSession?> FindAdminSessionById(SessionId sessionId, CancellationToken cancellationToken)
-    {
-        return await _adminSessionRepository
-            .QueryAsync(
-                SessionQuery.Build(builder => builder.WithPageSize(1).WithSessionId(sessionId)),
-                cancellationToken)
-            .FirstOrDefaultAsync(cancellationToken);
-    }*/
 }

@@ -78,13 +78,17 @@ public class AccountClient : IAccountClient
         WithdrawMoneyClient.Request request,
         CancellationToken cancellationToken)
     {
-        IApiResponse<AccountDto> apiResponse =
-            await _accountClient.WithdrawMoneyAsync(
-                new WithdrawMoneyRequest(request.Amount, request.SessionId),
-                cancellationToken);
-        if (!apiResponse.IsSuccessful)
+        var clientRequest = new WithdrawMoneyRequest(
+            request.Amount,
+            request.SessionId);
+
+        IApiResponse<AccountDto> apiResponse = await _accountClient
+            .WithdrawMoneyAsync(clientRequest, cancellationToken);
+
+        if (apiResponse.IsSuccessful is false)
         {
-            return new WithdrawMoneyClient.Result.Failure(apiResponse.ReasonPhrase ?? apiResponse.Error.Message);
+            return new WithdrawMoneyClient.Result.Failure(
+                apiResponse.ReasonPhrase ?? apiResponse.Error.Message);
         }
 
         return new WithdrawMoneyClient.Result.Success(apiResponse.Content.Balance);

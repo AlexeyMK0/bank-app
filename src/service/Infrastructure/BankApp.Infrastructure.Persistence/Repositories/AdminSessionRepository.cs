@@ -21,20 +21,20 @@ public sealed class AdminSessionRepository : IAdminSessionRepository
     public async Task<AdminSession> AddAsync(AdminSession adminSession, CancellationToken cancellationToken)
     {
         const string sql = """
-                           INSERT INTO admin_sessions (session_guid)
-                           VALUES (:session_guid)
-                           """;
+        INSERT INTO admin_sessions (session_guid)
+        VALUES (:session_guid)
+        """;
 
         var guid = new SessionId(Guid.NewGuid());
 
-        var connection = (NpgsqlConnection)await _dbSession.GetConnectionAsync(cancellationToken);
-        var transaction = (NpgsqlTransaction?)_dbSession.CurrentTransaction;
-        await using var command = new NpgsqlCommand(sql, connection, transaction);
+        await using DbConnection connection = await _dbSession.GetConnectionAsync(cancellationToken);
+        await using DbCommand command = connection.CreateCommand();
         command.CommandText = sql;
-        command.Parameters.Add(new NpgsqlParameter("session_guid", guid.Value));
+        command.Parameters.Add(new NpgsqlParameter<Guid>("session_guid", guid.Value));
 
-        object? result = await command.ExecuteScalarAsync(cancellationToken);
-        return new AdminSession(Convert.ToInt64(result), guid);
+        await command.ExecuteNonQueryAsync(cancellationToken);
+
+        return new AdminSession(guid);
     }
 
     public async IAsyncEnumerable<AdminSession> QueryAsync(
@@ -42,32 +42,27 @@ public sealed class AdminSessionRepository : IAdminSessionRepository
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         const string sql = """
-                           SELECT session_id, session_guid
-                           FROM admin_sessions
-                           WHERE (cardinality(:ids) = 0 or session_guid = ANY(:ids))
-                           and (:key_cursor::bigint is NULL or session_id > :key_cursor::bigint)
-                           LIMIT :page_size
-                           """;
+        SELECT session_guid
+        FROM admin_sessions
+        WHERE 
+            (:key_cursor is NULL or session_guid > :key_cursor)
+            and (cardinality(:ids) = 0 or session_guid = ANY(:ids))
+        LIMIT :page_size
+        """;
 
         Guid[] ids = query.SessionIds.Select(sessionId => sessionId.Value).ToArray();
-        int? keyCursor = query.KeyCursor is null ? null : Convert.ToInt32(query.KeyCursor);
-
-        var connection = (NpgsqlConnection)await _dbSession.GetConnectionAsync(cancellationToken);
-        var transaction = (NpgsqlTransaction?)_dbSession.CurrentTransaction;
-        await using var command = new NpgsqlCommand(sql, connection, transaction);
-        var keyCursorParam = new NpgsqlParameter("key_cursor", keyCursor);
-        keyCursorParam.Value ??= DBNull.Value;
-
+        await using DbConnection connection = await _dbSession.GetConnectionAsync(cancellationToken);
+        await using DbCommand command = connection.CreateCommand();
         command.CommandText = sql;
-        command.Parameters.Add(new NpgsqlParameter("ids", ids));
-        command.Parameters.Add(keyCursorParam);
-        command.Parameters.Add(new NpgsqlParameter("page_size", Convert.ToInt32(query.PageSize)));
+
+        command.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", ids));
+        command.Parameters.Add(new NpgsqlParameter<Guid?>("key_cursor", query.KeyCursor));
+        command.Parameters.Add(new NpgsqlParameter<int>("page_size", Convert.ToInt32(query.PageSize)));
         await using DbDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
 
         while (await reader.ReadAsync(cancellationToken))
         {
             yield return new AdminSession(
-                reader.GetInt64("session_id"),
                 new SessionId(reader.GetGuid("session_guid")));
         }
     }

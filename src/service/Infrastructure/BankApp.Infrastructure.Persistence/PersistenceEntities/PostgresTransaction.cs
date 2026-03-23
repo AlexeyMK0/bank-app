@@ -1,34 +1,24 @@
 using Abstractions.Transactions;
-using Npgsql;
+using System.Transactions;
 
 namespace Lab1.Infrastructure.Persistence.PersistenceEntities;
 
 public class PostgresTransaction : ITransaction
 {
-    private readonly NpgsqlTransaction _transaction;
+    private readonly TransactionScope _transactionScope;
 
-    public PostgresTransaction(NpgsqlTransaction transaction)
+    public PostgresTransaction(TransactionScope transactionScope)
     {
-        _transaction = transaction;
+        _transactionScope = transactionScope;
     }
 
-    public async Task CommitAsync(CancellationToken cancellationToken)
+    public void Commit()
     {
-        await _transaction.CommitAsync(cancellationToken);
-    }
-
-    public async Task RollbackAsync(CancellationToken cancellationToken)
-    {
-        await _transaction.RollbackAsync(cancellationToken);
+        _transactionScope.Complete();
     }
 
     public void Dispose()
     {
-        _transaction.Dispose();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await _transaction.DisposeAsync();
+        _transactionScope.Dispose();
     }
 }

@@ -1,3 +1,5 @@
+name: bank-app-project
+
 services:
   postgres:
     image: postgres:latest

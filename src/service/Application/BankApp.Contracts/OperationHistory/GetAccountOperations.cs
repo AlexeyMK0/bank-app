@@ -2,7 +2,7 @@ namespace Contracts.OperationHistory;
 
 public class GetAccountOperations
 {
-    public record PageToken(long Token);
+    public record PageToken(long OperationId);
 
     public sealed record Request(Guid SenderSessionId, PageToken? PageToken, int PageSize);
 

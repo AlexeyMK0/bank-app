@@ -24,22 +24,20 @@ public sealed class AccountRepository : IAccountRepository
         CancellationToken cancellationToken)
     {
         const string sql = """
-           INSERT INTO "accounts" (account_balance, account_pincode)
-           VALUES (:balance, :pincode)
-           RETURNING account_id;
-       """;
+        INSERT INTO accounts (account_balance, account_pincode)
+        VALUES (:balance, :pincode)
+        RETURNING account_id;
+        """;
 
-        var connection = (NpgsqlConnection)await _dbSession.GetConnectionAsync(cancellationToken);
-        var transaction = (NpgsqlTransaction?)_dbSession.CurrentTransaction;
-        await using var command = new NpgsqlCommand(sql, connection, transaction);
+        await using DbConnection connection = await _dbSession.GetConnectionAsync(cancellationToken);
+        await using DbCommand command = connection.CreateCommand();
         command.CommandText = sql;
-        command.Parameters.Add(new NpgsqlParameter("balance", account.Balance.Value));
-        command.Parameters.Add(new NpgsqlParameter("pincode", account.PinCode.Value));
+        command.Parameters.Add(new NpgsqlParameter<decimal>("balance", account.Balance.Value));
+        command.Parameters.Add(new NpgsqlParameter<string>("pincode", account.PinCode.Value));
 
         object? result = await command.ExecuteScalarAsync(cancellationToken);
         long newId = Convert.ToInt64(result);
-        return new Account(
-            new AccountId(newId), account.PinCode, account.Balance);
+        return account with { Id = new AccountId(newId) };
     }
 
     public async Task<Account> UpdateAsync(
@@ -47,17 +45,17 @@ public sealed class AccountRepository : IAccountRepository
         CancellationToken cancellationToken)
     {
         const string sql = """
-            UPDATE accounts
-            SET account_pincode = :pincode, account_balance = :balance
-            WHERE account_id = :account_id
+        UPDATE accounts
+        SET account_pincode = :pincode, account_balance = :balance
+        WHERE account_id = :account_id
         """;
 
-        var connection = (NpgsqlConnection)await _dbSession.GetConnectionAsync(cancellationToken);
-        var transaction = (NpgsqlTransaction?)_dbSession.CurrentTransaction;
-        await using var command = new NpgsqlCommand(sql, connection, transaction);
-        command.Parameters.Add(new NpgsqlParameter("account_id", account.Id.Value));
-        command.Parameters.Add(new NpgsqlParameter("balance", account.Balance.Value));
-        command.Parameters.Add(new NpgsqlParameter("pincode", account.PinCode.Value));
+        await using DbConnection connection = await _dbSession.GetConnectionAsync(cancellationToken);
+        await using DbCommand command = connection.CreateCommand();
+        command.CommandText = sql;
+        command.Parameters.Add(new NpgsqlParameter<long>("account_id", account.Id.Value));
+        command.Parameters.Add(new NpgsqlParameter<decimal>("balance", account.Balance.Value));
+        command.Parameters.Add(new NpgsqlParameter<string>("pincode", account.PinCode.Value));
 
         await command.ExecuteNonQueryAsync(cancellationToken);
         return account;
@@ -68,20 +66,20 @@ public sealed class AccountRepository : IAccountRepository
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         const string sql = """
-           SELECT account_id, account_pincode, account_balance
-           FROM accounts
-           WHERE (
-               (cardinality(:ids) = 0 or account_id = ANY(:ids))
-                and (:key_cursor::BIGINT IS NULL or account_id > :key_cursor::BIGINT))
-           LIMIT :page_size;
+        SELECT account_id, account_pincode, account_balance
+        FROM accounts
+        WHERE (
+            (:key_cursor IS NULL or account_id > :key_cursor))
+            and (cardinality(:ids) = 0 or account_id = ANY(:ids))
+        LIMIT :page_size;
         """;
 
-        var connection = (NpgsqlConnection)await _dbSession.GetConnectionAsync(cancellationToken);
-        var transaction = (NpgsqlTransaction?)_dbSession.CurrentTransaction;
-        await using var command = new NpgsqlCommand(sql, connection, transaction);
-        command.Parameters.Add(new NpgsqlParameter("ids", query.AccountIds.Select(id => id.Value).ToArray()));
-        command.Parameters.Add(new NpgsqlParameter("key_cursor", query.KeyCursor ?? 0L));
-        command.Parameters.Add(new NpgsqlParameter("page_size", query.PageSize));
+        await using DbConnection connection = await _dbSession.GetConnectionAsync(cancellationToken);
+        await using DbCommand command = connection.CreateCommand();
+        command.CommandText = sql;
+        command.Parameters.Add(new NpgsqlParameter<long[]>("ids", query.AccountIds.Select(id => id.Value).ToArray()));
+        command.Parameters.Add(new NpgsqlParameter<long?>("key_cursor", query.KeyCursor));
+        command.Parameters.Add(new NpgsqlParameter<int>("page_size", query.PageSize));
 
         await using DbDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken))

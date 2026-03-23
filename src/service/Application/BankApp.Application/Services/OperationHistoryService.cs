@@ -1,7 +1,5 @@
-using Abstractions.OperationHistory;
 using Abstractions.Queries;
 using Abstractions.Repositories;
-using Abstractions.Transactions;
 using Contracts.OperationHistory;
 using Lab1.Application.Mappers;
 using Lab1.Application.RepositoryExtensions;
@@ -17,9 +15,7 @@ public class OperationHistoryService : IOperationHistoryService
 
     public OperationHistoryService(
         IUserSessionRepository sessionRepository,
-        IOperationRepository operationRepository,
-        ITransactionProvider transactionProvider,
-        IOperationHistoryWriter operationWriter)
+        IOperationRepository operationRepository)
     {
         _sessionRepository = sessionRepository;
         _operationRepository = operationRepository;
@@ -29,29 +25,32 @@ public class OperationHistoryService : IOperationHistoryService
         GetAccountOperations.Request request,
         CancellationToken cancellationToken)
     {
-        UserSession? foundSession =
-            await _sessionRepository.FindBySessionIdAsync(new SessionId(request.SenderSessionId), cancellationToken);
+        UserSession? foundSession = await _sessionRepository
+            .FindBySessionIdAsync(new SessionId(request.SenderSessionId), cancellationToken);
         if (foundSession is null)
         {
             return new GetAccountOperations.Response.Failure("Session not found");
         }
 
-        OperationRecordId? inputKeyCursor =
-            request.PageToken is null ? null : new OperationRecordId(request.PageToken.Token);
+        OperationRecordId? inputKeyCursor = request.PageToken is null
+            ? null
+            : new OperationRecordId(request.PageToken.OperationId);
 
         OperationRecord[] operations = await _operationRepository.QueryAsync(
                 OperationQuery.Build(builder => builder
-                    .WithAccountIds([foundSession.AccountId])
-                    .WithSessionIds([])
+                    .WithAccountId(foundSession.AccountId)
                     .WithKeyCursor(inputKeyCursor)
                     .WithPageSize(request.PageSize)),
                 cancellationToken)
             .ToArrayAsync(cancellationToken);
 
-        GetAccountOperations.PageToken? keyCursor = operations.Length > 0 ? new GetAccountOperations.PageToken(operations[^1].Id.Value) : null;
+        GetAccountOperations.PageToken? keyCursor = operations.Length > 0
+            ? new GetAccountOperations.PageToken(operations[^1].Id.Value)
+            : null;
         return new GetAccountOperations.Response.Success(
-            new HistoryDto(
-                operations.Select(record => record.MapToDto()).ToList()),
+            new HistoryDto(operations
+                .Select(record => record.MapToDto())
+                .ToList()),
             keyCursor);
     }
 }

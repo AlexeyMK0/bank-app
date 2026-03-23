@@ -19,7 +19,7 @@ public class SessionController : ControllerBase
         _sessionService = sessionService;
     }
 
-    [HttpPost("user/create")]
+    [HttpPost("user")]
     public async Task<ActionResult<UserSessionDto>> CreateUser(
         [FromBody] CreateUserSessionRequest httpRequest,
         CancellationToken cancellationToken)
@@ -34,7 +34,7 @@ public class SessionController : ControllerBase
         };
     }
 
-    [HttpPost("admin/create")]
+    [HttpPost("admin")]
     public async Task<ActionResult<CreateAdminSessionResponse>> CreateAdmin(
         [FromBody] CreateAdminSessionRequest httpRequest,
         CancellationToken cancellationToken)

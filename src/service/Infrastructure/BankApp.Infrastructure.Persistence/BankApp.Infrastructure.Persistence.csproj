@@ -15,6 +15,7 @@
       <PackageReference Include="FluentMigrator" />
       <PackageReference Include="FluentMigrator.Extensions.Postgres" />
       <PackageReference Include="FluentMigrator.Runner.Postgres" />
+      <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" />
       <PackageReference Include="Microsoft.Extensions.Logging.Console" />
       <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
       <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />

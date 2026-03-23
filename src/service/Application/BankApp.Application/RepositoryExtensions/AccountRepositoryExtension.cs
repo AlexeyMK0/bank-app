@@ -6,7 +6,7 @@ namespace Lab1.Application.RepositoryExtensions;
 
 public static class AccountRepositoryExtension
 {
-    public static async Task<Account?> FindAccountById(
+    public static async Task<Account?> FindAccountByIdAsync(
         this IAccountRepository accountRepository, AccountId accountId, CancellationToken cancellationToken)
     {
         return await accountRepository

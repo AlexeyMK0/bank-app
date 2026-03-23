@@ -1,8 +1,6 @@
 namespace Abstractions.Transactions;
 
-public interface ITransaction : IDisposable, IAsyncDisposable
+public interface ITransaction : IDisposable
 {
-    Task CommitAsync(CancellationToken cancellationToken);
-
-    Task RollbackAsync(CancellationToken cancellationToken);
+    void Commit();
 }

@@ -4,5 +4,5 @@ namespace Abstractions.Transactions;
 
 public interface ITransactionProvider
 {
-    Task<ITransaction> BeginTransactionAsync(CancellationToken cancellationToken, IsolationLevel isolationLevel);
+    ITransaction BeginTransaction(IsolationLevel isolationLevel);
 }
