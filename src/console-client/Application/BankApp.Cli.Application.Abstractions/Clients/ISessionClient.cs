@@ -4,11 +4,11 @@ namespace BankApp.Cli.Application.Abstractions.Clients;
 
 public interface ISessionClient
 {
-    Task<CreateUserSessionClient.Result> CreateUserSessionAsync(
-        CreateUserSessionClient.Request request,
+    Task<CreateUserSessionRequest.Result> CreateUserSessionAsync(
+        CreateUserSessionRequest.Request request,
         CancellationToken cancellationToken);
 
-    Task<CreateAdminSessionClient.Result> CreateAdminSessionAsync(
-        CreateAdminSessionClient.Request request,
+    Task<CreateAdminSessionRequest.Result> CreateAdminSessionAsync(
+        CreateAdminSessionRequest.Request request,
         CancellationToken cancellationToken);
 }

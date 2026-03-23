@@ -2,7 +2,9 @@ namespace BankApp.Cli.Application.Model;
 
 public interface IUserContext
 {
-    Guid? CurrentSession { get; set; }
+    Guid? CurrentSession { get; }
 
-    bool IsQuit { get; set; }
+    void Login(Guid sessionId);
+
+    void Logout();
 }

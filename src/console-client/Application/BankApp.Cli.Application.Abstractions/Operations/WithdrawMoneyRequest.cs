@@ -1,6 +1,6 @@
 namespace BankApp.Cli.Application.Abstractions.Operations;
 
-public sealed class WithdrawMoneyClient
+public sealed class WithdrawMoneyRequest
 {
     public readonly record struct Request(decimal Amount, Guid SessionId);
 

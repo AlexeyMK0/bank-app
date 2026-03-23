@@ -12,16 +12,16 @@ namespace BankApp.Cli.Application.Services;
 
 public class AccountService : IAccountService
 {
-    private readonly ILogger _logger
-        = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger("BankApp.Cli.Application.Services logger");
+    private readonly ILogger<AccountService> _logger;
 
     private readonly IUserContext _userContext;
     private readonly IAccountClient _accountClient;
 
-    public AccountService(IUserContext userContext, IAccountClient accountClient)
+    public AccountService(IUserContext userContext, IAccountClient accountClient, ILogger<AccountService> logger)
     {
         _userContext = userContext;
         _accountClient = accountClient;
+        _logger = logger;
     }
 
     public async Task<CreateAccount.Result> CreateAccountAsync(CreateAccount.Request request, CancellationToken cancellationToken)
@@ -32,15 +32,15 @@ public class AccountService : IAccountService
             return new CreateAccount.Result.Failure("You need to log in to perform any operation");
         }
 
-        CreateAccountClient.Result result = await _accountClient.CreateNewAccountAsync(
-            new CreateAccountClient.Request(request.PinCode, (Guid)currentSession),
+        CreateAccountRequest.Result result = await _accountClient.CreateNewAccountAsync(
+            new CreateAccountRequest.Request(request.PinCode, (Guid)currentSession),
             cancellationToken);
 
         return result switch
         {
-            CreateAccountClient.Result.Success success => new CreateAccount.Result.Success(
+            CreateAccountRequest.Result.Success success => new CreateAccount.Result.Success(
                 new AccountDto(success.CreatedAccount.Id, success.CreatedAccount.Balance)),
-            CreateAccountClient.Result.Failure failure => new CreateAccount.Result.Failure(failure.Reason),
+            CreateAccountRequest.Result.Failure failure => new CreateAccount.Result.Failure(failure.Reason),
             _ => throw new UnreachableException(),
         };
     }
@@ -53,14 +53,14 @@ public class AccountService : IAccountService
             return new GetBalance.Result.Failure("You need to log in to perform any operation");
         }
 
-        GetBalanceClient.Result result = await _accountClient.GetBalanceAsync(
-            new GetBalanceClient.Request((Guid)currentSession),
+        GetBalanceRequest.Result result = await _accountClient.GetBalanceAsync(
+            new GetBalanceRequest.Request((Guid)currentSession),
             cancellationToken);
 
         return result switch
         {
-            GetBalanceClient.Result.Success success => new GetBalance.Result.Success(success.Balance),
-            GetBalanceClient.Result.Failure failure => new GetBalance.Result.Failure(failure.Reason),
+            GetBalanceRequest.Result.Success success => new GetBalance.Result.Success(success.Balance),
+            GetBalanceRequest.Result.Failure failure => new GetBalance.Result.Failure(failure.Reason),
             _ => throw new UnreachableException(),
         };
     }
@@ -73,14 +73,14 @@ public class AccountService : IAccountService
             return new WithdrawMoney.Result.Failure("You need to log in to perform any operation");
         }
 
-        WithdrawMoneyClient.Result result = await _accountClient.WithdrawMoneyAsync(
-            new WithdrawMoneyClient.Request(request.Amount, (Guid)currentSession),
+        WithdrawMoneyRequest.Result result = await _accountClient.WithdrawMoneyAsync(
+            new WithdrawMoneyRequest.Request(request.Amount, (Guid)currentSession),
             cancellationToken);
 
         return result switch
         {
-            WithdrawMoneyClient.Result.Success success => new WithdrawMoney.Result.Success(success.UpdatedBalance),
-            WithdrawMoneyClient.Result.Failure failure => new WithdrawMoney.Result.Failure(failure.Reason),
+            WithdrawMoneyRequest.Result.Success success => new WithdrawMoney.Result.Success(success.UpdatedBalance),
+            WithdrawMoneyRequest.Result.Failure failure => new WithdrawMoney.Result.Failure(failure.Reason),
             _ => throw new UnreachableException(),
         };
     }
@@ -93,14 +93,14 @@ public class AccountService : IAccountService
             return new DepositMoney.Result.Failure("You need to log in to perform any operation");
         }
 
-        DepositMoneyClient.Result result = await _accountClient.DepositMoneyAsync(
-            new DepositMoneyClient.Request(request.Amount, (Guid)currentSession),
+        DepositMoneyRequest.Result result = await _accountClient.DepositMoneyAsync(
+            new DepositMoneyRequest.Request(request.Amount, (Guid)currentSession),
             cancellationToken);
 
         return result switch
         {
-            DepositMoneyClient.Result.Success success => new DepositMoney.Result.Success(success.UpdatedBalance),
-            DepositMoneyClient.Result.Failure failure => new DepositMoney.Result.Failure(failure.Reason),
+            DepositMoneyRequest.Result.Success success => new DepositMoney.Result.Success(success.UpdatedBalance),
+            DepositMoneyRequest.Result.Failure failure => new DepositMoney.Result.Failure(failure.Reason),
             _ => throw new UnreachableException(),
         };
     }
@@ -115,17 +115,17 @@ public class AccountService : IAccountService
             return new GetHistory.Result.Failure("You need to log in to perform any operation");
         }
 
-        GetHistoryClient.Result result = await _accountClient.GetHistoryAsync(
-            new GetHistoryClient.Request((Guid)currentSession, request.EntriesCount),
+        GetHistoryRequest.Result result = await _accountClient.GetHistoryAsync(
+            new GetHistoryRequest.Request((Guid)currentSession, request.EntriesCount),
             cancellationToken);
 
         _logger.LogInformation("Got GetHistory response in service");
 
         return result switch
         {
-            GetHistoryClient.Result.Success success => new GetHistory.Result.Success(
+            GetHistoryRequest.Result.Success success => new GetHistory.Result.Success(
                 success.Entries.Select(entry => entry.MapToDto())),
-            GetHistoryClient.Result.Failure failure => new GetHistory.Result.Failure(failure.Reason),
+            GetHistoryRequest.Result.Failure failure => new GetHistory.Result.Failure(failure.Reason),
             _ => throw new UnreachableException(),
         };
     }

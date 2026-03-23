@@ -1,6 +1,6 @@
 namespace BankApp.Cli.Application.Abstractions.Operations;
 
-public sealed class CreateAdminSessionClient
+public sealed class CreateAdminSessionRequest
 {
     public readonly record struct Request(string SystemPassword);
 

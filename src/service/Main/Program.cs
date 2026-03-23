@@ -9,6 +9,8 @@ builder.Services
     .AddApplication()
     .AddPresentationHttp();
 
+builder.Services.AddLogging(loggerBuilder => loggerBuilder.AddConsole());
+
 WebApplication app = builder.Build();
 
 app.UseRouting();

@@ -1,9 +1,10 @@
 using BankApp.Cli.Application.Abstractions.Clients;
-using BankApp.Cli.Application.Abstractions.Operations;
 using BankApp.Cli.Application.Models;
 using BankApp.Cli.Infrastructure.BankApiService.Models;
 using BankApp.Cli.Infrastructure.BankApiService.RefitClients;
 using Refit;
+using CreateAdminSessionRequest = BankApp.Cli.Application.Abstractions.Operations.CreateAdminSessionRequest;
+using CreateUserSessionRequest = BankApp.Cli.Application.Abstractions.Operations.CreateUserSessionRequest;
 
 namespace BankApp.Cli.Infrastructure.BankApiService.Clients;
 
@@ -16,33 +17,33 @@ public class SessionClient : ISessionClient
         _sessionClient = sessionClient;
     }
 
-    public async Task<CreateUserSessionClient.Result> CreateUserSessionAsync(CreateUserSessionClient.Request request, CancellationToken cancellationToken)
+    public async Task<CreateUserSessionRequest.Result> CreateUserSessionAsync(CreateUserSessionRequest.Request request, CancellationToken cancellationToken)
     {
-        var apiRequest = new CreateUserSessionRequest(request.AccountId, request.PinCode);
+        var apiRequest = new CreateUserSession.Request(request.AccountId, request.PinCode);
 
-        IApiResponse<CreateUserSessionResponse> apiResponse =
+        IApiResponse<CreateUserSession.Response> apiResponse =
             await _sessionClient.CreateUserSessionAsync(apiRequest, cancellationToken);
         if (!apiResponse.IsSuccessful)
         {
-            return new CreateUserSessionClient.Result.Failure(apiResponse.ReasonPhrase ?? apiResponse.Error.Message);
+            return new CreateUserSessionRequest.Result.Failure(apiResponse.Error.Content ?? apiResponse.Error.Message);
         }
 
-        CreateUserSessionResponse content = apiResponse.Content;
-        return new CreateUserSessionClient.Result.Success(new UserSession(content.SessionId, content.AccountId));
+        CreateUserSession.Response content = apiResponse.Content;
+        return new CreateUserSessionRequest.Result.Success(new UserSession(content.SessionId, content.AccountId));
     }
 
-    public async Task<CreateAdminSessionClient.Result> CreateAdminSessionAsync(CreateAdminSessionClient.Request request, CancellationToken cancellationToken)
+    public async Task<CreateAdminSessionRequest.Result> CreateAdminSessionAsync(CreateAdminSessionRequest.Request request, CancellationToken cancellationToken)
     {
-        var apiRequest = new CreateAdminSessionRequest(request.SystemPassword);
+        var apiRequest = new CreateAdminSession.Request(request.SystemPassword);
 
-        IApiResponse<CreateAdminSessionResponse> apiResponse =
+        IApiResponse<CreateAdminSession.Response> apiResponse =
             await _sessionClient.CreateAdminSessionAsync(apiRequest, cancellationToken);
         if (!apiResponse.IsSuccessful)
         {
-            return new CreateAdminSessionClient.Result.Failure(apiResponse.ReasonPhrase ?? apiResponse.Error.Message);
+            return new CreateAdminSessionRequest.Result.Failure(apiResponse.Error.Content ?? apiResponse.Error.Message);
         }
 
-        CreateAdminSessionResponse content = apiResponse.Content;
-        return new CreateAdminSessionClient.Result.Success(content.AdminSessionGuid);
+        CreateAdminSession.Response content = apiResponse.Content;
+        return new CreateAdminSessionRequest.Result.Success(content.AdminSessionGuid);
     }
 }

@@ -7,7 +7,6 @@ using System.Diagnostics;
 
 namespace Lab1.Presentation.Http.Controllers;
 
-// TODO: adjust paths to REST principles
 [Route("api/session")]
 [ApiController]
 public class SessionController : ControllerBase

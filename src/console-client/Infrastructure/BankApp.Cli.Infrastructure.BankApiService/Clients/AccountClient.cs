@@ -7,6 +7,9 @@ using BankApp.Cli.Infrastructure.BankApiService.RefitClients;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Refit;
+using CreateAccountRequest = BankApp.Cli.Application.Abstractions.Operations.CreateAccountRequest;
+using DepositMoneyRequest = BankApp.Cli.Application.Abstractions.Operations.DepositMoneyRequest;
+using WithdrawMoneyRequest = BankApp.Cli.Application.Abstractions.Operations.WithdrawMoneyRequest;
 
 namespace BankApp.Cli.Infrastructure.BankApiService.Clients;
 
@@ -14,18 +17,17 @@ public class AccountClient : IAccountClient
 {
     private readonly int _defaultPageSize;
     private readonly IRefitAccountClient _accountClient;
+    private readonly ILogger<AccountClient> _logger;
 
-    private readonly ILogger _logger =
-        LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger("AccountClient logger");
-
-    public AccountClient(IRefitAccountClient accountClient, IOptions<BankApiClientsOptions> options)
+    public AccountClient(IRefitAccountClient accountClient, IOptions<BankApiClientsOptions> options, ILogger<AccountClient> logger)
     {
         _accountClient = accountClient;
+        _logger = logger;
         _defaultPageSize = options.Value.DefaultPageSize;
     }
 
-    public async Task<GetBalanceClient.Result> GetBalanceAsync(
-        GetBalanceClient.Request request,
+    public async Task<GetBalanceRequest.Result> GetBalanceAsync(
+        GetBalanceRequest.Request request,
         CancellationToken cancellationToken)
     {
         _logger.LogInformation("Getting balance of selected account");
@@ -34,51 +36,50 @@ public class AccountClient : IAccountClient
         if (!apiResponse.IsSuccessful)
         {
             _logger.LogInformation("Operation failed");
-            _logger.LogInformation(string.Empty + apiResponse);
-            return new GetBalanceClient.Result.Failure(apiResponse.ReasonPhrase ?? apiResponse.Error.Message);
+            return new GetBalanceRequest.Result.Failure(apiResponse.Error.Content ?? apiResponse.Error.Message);
         }
 
-        return new GetBalanceClient.Result.Success(apiResponse.Content);
+        return new GetBalanceRequest.Result.Success(apiResponse.Content);
     }
 
-    public async Task<CreateAccountClient.Result> CreateNewAccountAsync(
-        CreateAccountClient.Request request,
+    public async Task<CreateAccountRequest.Result> CreateNewAccountAsync(
+        CreateAccountRequest.Request request,
         CancellationToken cancellationToken)
     {
         IApiResponse<AccountDto> apiResponse =
             await _accountClient.CreateNewAccountAsync(
-                new CreateAccountRequest(request.AdminSessionId, request.PinCode),
+                new CreateAccount.Request(request.AdminSessionId, request.PinCode),
                 cancellationToken);
         if (!apiResponse.IsSuccessful)
         {
-            return new CreateAccountClient.Result.Failure(apiResponse.ReasonPhrase ?? apiResponse.Error.Message);
+            return new CreateAccountRequest.Result.Failure(apiResponse.Error.Content ?? apiResponse.Error.Message);
         }
 
         AccountDto content = apiResponse.Content;
-        return new CreateAccountClient.Result.Success(new Account(content.AccountId, content.Balance));
+        return new CreateAccountRequest.Result.Success(new Account(content.AccountId, content.Balance));
     }
 
-    public async Task<DepositMoneyClient.Result> DepositMoneyAsync(
-        DepositMoneyClient.Request request,
+    public async Task<DepositMoneyRequest.Result> DepositMoneyAsync(
+        DepositMoneyRequest.Request request,
         CancellationToken cancellationToken)
     {
         IApiResponse<AccountDto> apiResponse =
             await _accountClient.DepositMoneyAsync(
-                new DepositMoneyRequest(request.Amount, request.SessionId),
+                new DepositMoney.Request(request.Amount, request.SessionId),
                 cancellationToken);
         if (!apiResponse.IsSuccessful)
         {
-            return new DepositMoneyClient.Result.Failure(apiResponse.ReasonPhrase ?? apiResponse.Error.Message);
+            return new DepositMoneyRequest.Result.Failure(apiResponse.Error.Content ?? apiResponse.Error.Message);
         }
 
-        return new DepositMoneyClient.Result.Success(apiResponse.Content.Balance);
+        return new DepositMoneyRequest.Result.Success(apiResponse.Content.Balance);
     }
 
-    public async Task<WithdrawMoneyClient.Result> WithdrawMoneyAsync(
-        WithdrawMoneyClient.Request request,
+    public async Task<WithdrawMoneyRequest.Result> WithdrawMoneyAsync(
+        WithdrawMoneyRequest.Request request,
         CancellationToken cancellationToken)
     {
-        var clientRequest = new WithdrawMoneyRequest(
+        var clientRequest = new WithdrawMoney.Request(
             request.Amount,
             request.SessionId);
 
@@ -87,15 +88,14 @@ public class AccountClient : IAccountClient
 
         if (apiResponse.IsSuccessful is false)
         {
-            return new WithdrawMoneyClient.Result.Failure(
-                apiResponse.ReasonPhrase ?? apiResponse.Error.Message);
+            return new WithdrawMoneyRequest.Result.Failure(apiResponse.Error.Content ?? apiResponse.Error.Message);
         }
 
-        return new WithdrawMoneyClient.Result.Success(apiResponse.Content.Balance);
+        return new WithdrawMoneyRequest.Result.Success(apiResponse.Content.Balance);
     }
 
-    public async Task<GetHistoryClient.Result> GetHistoryAsync(
-        GetHistoryClient.Request request,
+    public async Task<GetHistoryRequest.Result> GetHistoryAsync(
+        GetHistoryRequest.Request request,
         CancellationToken cancellationToken)
     {
         _logger.LogInformation("Getting history of account in client");
@@ -107,7 +107,7 @@ public class AccountClient : IAccountClient
         {
             _logger.LogInformation("Request to refit client");
             int pageSize = Math.Min(_defaultPageSize, request.EntriesCount - entries.Count);
-            IApiResponse<GetHistoryReponse> apiResponse =
+            IApiResponse<GetHistory.Response> apiResponse =
                 await _accountClient.GetOperationHistoryAsync(
                     pageToken,
                     pageSize,
@@ -118,7 +118,7 @@ public class AccountClient : IAccountClient
             if (!apiResponse.IsSuccessful)
             {
                 _logger.LogInformation("Operation failed" + apiResponse.ReasonPhrase);
-                return new GetHistoryClient.Result.Failure(apiResponse.ReasonPhrase ?? apiResponse.Error.Message);
+                return new GetHistoryRequest.Result.Failure(apiResponse.Error.Content ?? apiResponse.Error.Message);
             }
 
             _logger.LogInformation("apiResponse is successful");
@@ -131,6 +131,6 @@ public class AccountClient : IAccountClient
 
         _logger.LogInformation("Exit GetHistoryAsync");
 
-        return new GetHistoryClient.Result.Success(entries);
+        return new GetHistoryRequest.Result.Success(entries);
     }
 }

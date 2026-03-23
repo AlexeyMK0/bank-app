@@ -6,7 +6,6 @@ using FluentMigrator.Infrastructure;
 
 namespace Lab1.Infrastructure.Persistence.Migrations;
 
-// TODO: create different migrations
 [Migration(1773333471, "Initial")]
 public class Initial1773333471 : IMigration
 {

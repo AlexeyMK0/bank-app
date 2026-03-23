@@ -2,7 +2,7 @@ using BankApp.Cli.Application.Models;
 
 namespace BankApp.Cli.Application.Abstractions.Operations;
 
-public sealed class CreateAccountClient
+public sealed class CreateAccountRequest
 {
     public readonly record struct Request(string PinCode, Guid AdminSessionId);
 

@@ -4,23 +4,23 @@ namespace BankApp.Cli.Application.Abstractions.Clients;
 
 public interface IAccountClient
 {
-    Task<GetBalanceClient.Result> GetBalanceAsync(
-        GetBalanceClient.Request request,
+    Task<GetBalanceRequest.Result> GetBalanceAsync(
+        GetBalanceRequest.Request request,
         CancellationToken cancellationToken);
 
-    Task<CreateAccountClient.Result> CreateNewAccountAsync(
-        CreateAccountClient.Request request,
+    Task<CreateAccountRequest.Result> CreateNewAccountAsync(
+        CreateAccountRequest.Request request,
         CancellationToken cancellationToken);
 
-    Task<DepositMoneyClient.Result> DepositMoneyAsync(
-        DepositMoneyClient.Request request,
+    Task<DepositMoneyRequest.Result> DepositMoneyAsync(
+        DepositMoneyRequest.Request request,
         CancellationToken cancellationToken);
 
-    Task<WithdrawMoneyClient.Result> WithdrawMoneyAsync(
-        WithdrawMoneyClient.Request request,
+    Task<WithdrawMoneyRequest.Result> WithdrawMoneyAsync(
+        WithdrawMoneyRequest.Request request,
         CancellationToken cancellationToken);
 
-    Task<GetHistoryClient.Result> GetHistoryAsync(
-        GetHistoryClient.Request request,
+    Task<GetHistoryRequest.Result> GetHistoryAsync(
+        GetHistoryRequest.Request request,
         CancellationToken cancellationToken);
 }

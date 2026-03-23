@@ -6,6 +6,7 @@ using BankApp.Cli.Presentation.Cli.CommandHandlers;
 using BankApp.Cli.Presentation.Cli.Model;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -19,6 +20,8 @@ IServiceCollection services = new ServiceCollection()
     .AddBankApiClients()
     .AddPresentation()
     .AddSingleton<IConfiguration>(configuration);
+
+services.AddLogging(builder => builder.AddConsole());
 
 var registrar = new ServiceCollectionRegistrar(services);
 

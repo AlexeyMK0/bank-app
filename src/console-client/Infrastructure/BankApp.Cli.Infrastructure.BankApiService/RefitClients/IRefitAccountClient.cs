@@ -12,21 +12,21 @@ public interface IRefitAccountClient
 
     [Post("/api/account")]
     Task<IApiResponse<AccountDto>> CreateNewAccountAsync(
-        [Body] CreateAccountRequest request,
+        [Body] CreateAccount.Request request,
         CancellationToken cancellationToken);
 
     [Post("/api/account/deposit")]
     Task<IApiResponse<AccountDto>> DepositMoneyAsync(
-        [Body] DepositMoneyRequest request,
+        [Body] DepositMoney.Request request,
         CancellationToken cancellationToken);
 
     [Post("/api/account/withdraw")]
     Task<IApiResponse<AccountDto>> WithdrawMoneyAsync(
-        [Body] WithdrawMoneyRequest request,
+        [Body] WithdrawMoney.Request request,
         CancellationToken cancellationToken);
 
     [Get("/api/operations/history")]
-    Task<IApiResponse<GetHistoryReponse>> GetOperationHistoryAsync(
+    Task<IApiResponse<GetHistory.Response>> GetOperationHistoryAsync(
         [Query] string? pageToken,
         [Query] int pageSize,
         [Query, AliasAs("sessionId")] Guid sessionId,

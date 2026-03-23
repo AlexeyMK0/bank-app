@@ -6,12 +6,12 @@ namespace BankApp.Cli.Infrastructure.BankApiService.RefitClients;
 public interface IRefitSessionClient
 {
     [Post("/api/session/user")]
-    Task<IApiResponse<CreateUserSessionResponse>> CreateUserSessionAsync(
-        [Body] CreateUserSessionRequest request,
+    Task<IApiResponse<CreateUserSession.Response>> CreateUserSessionAsync(
+        [Body] CreateUserSession.Request request,
         CancellationToken cancellationToken);
 
     [Post("/api/session/admin")]
-    Task<IApiResponse<CreateAdminSessionResponse>> CreateAdminSessionAsync(
-        [Body] CreateAdminSessionRequest request,
+    Task<IApiResponse<CreateAdminSession.Response>> CreateAdminSessionAsync(
+        [Body] CreateAdminSession.Request request,
         CancellationToken cancellationToken);
 }

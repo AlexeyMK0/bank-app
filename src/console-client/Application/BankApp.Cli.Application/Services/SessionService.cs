@@ -27,20 +27,20 @@ public class SessionService : ISessionService
             return new CreateUserSession.Result.Failure("You are already logged in");
         }
 
-        CreateUserSessionClient.Result result = await _sessionClient.CreateUserSessionAsync(
-            new CreateUserSessionClient.Request(request.AccountId, request.PinCode),
+        CreateUserSessionRequest.Result result = await _sessionClient.CreateUserSessionAsync(
+            new CreateUserSessionRequest.Request(request.AccountId, request.PinCode),
             cancellationToken);
 
         switch (result)
         {
-            case CreateUserSessionClient.Result.Success success:
+            case CreateUserSessionRequest.Result.Success success:
                 if (request.StayLogged is true)
                 {
-                    _userContext.CurrentSession = success.CreatedSession.SessionId;
+                    _userContext.Login(success.CreatedSession.SessionId);
                 }
 
                 return new CreateUserSession.Result.Success();
-            case CreateUserSessionClient.Result.Failure failure:
+            case CreateUserSessionRequest.Result.Failure failure:
                 return new CreateUserSession.Result.Failure(failure.Reason);
             default:
                 throw new UnreachableException();
@@ -56,17 +56,17 @@ public class SessionService : ISessionService
             return new CreateAdminSession.Result.Failure("You are already logged in");
         }
 
-        CreateAdminSessionClient.Result result = await _sessionClient.CreateAdminSessionAsync(
-            new CreateAdminSessionClient.Request(request.SystemPassword),
+        CreateAdminSessionRequest.Result result = await _sessionClient.CreateAdminSessionAsync(
+            new CreateAdminSessionRequest.Request(request.SystemPassword),
             cancellationToken);
 
         switch (result)
         {
-            case CreateAdminSessionClient.Result.Success success:
+            case CreateAdminSessionRequest.Result.Success success:
                 if (request.StayLogged is true)
-                    _userContext.CurrentSession = success.CreatedSessionId;
+                    _userContext.Login(success.CreatedSessionId);
                 return new CreateAdminSession.Result.Success();
-            case CreateAdminSessionClient.Result.Failure failure:
+            case CreateAdminSessionRequest.Result.Failure failure:
                 return new CreateAdminSession.Result.Failure(failure.Reason);
             default:
                 throw new UnreachableException();
@@ -80,7 +80,7 @@ public class SessionService : ISessionService
             return new Logout.Result.Failure("You are not logged in");
         }
 
-        _userContext.CurrentSession = null;
+        _userContext.Logout();
         return new Logout.Result.Success();
     }
 }

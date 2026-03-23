@@ -1,6 +1,6 @@
 namespace BankApp.Cli.Application.Abstractions.Operations;
 
-public sealed class GetBalanceClient
+public sealed class GetBalanceRequest
 {
     public readonly record struct Request(Guid SessionId);
 
