@@ -117,8 +117,8 @@ src/
     ├── Infrastructure/               # HTTP-клиенты (Refit)
     │   └── BankApp.Cli.Infrastructure.BankApiService
     └── Presentation/                 # Слой интерфейса (Spectre.Console)
-        └── BankApp.Cli.Presentation.Cli```
-
+        └── BankApp.Cli.Presentation.Cli
+```
 ---
 
 Этот проект является доработанной реализацией лабораторной работы с курса Backend разработки на C#
