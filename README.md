@@ -71,7 +71,7 @@
 
 Добавьте системный пароль в user-secrets
 ```
-dotnet user-secrets set "Ключ" "Значение"
+dotnet user-secrets set "SystemPasswordSettings:Password" "Значение"
 ```
 
 Запустите проект
